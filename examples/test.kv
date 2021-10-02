@@ -1,0 +1,167 @@
+<UI>:
+    canvas:
+        Color:
+            rgba: rgba("#ffffff")
+        Rectangle:
+            size: self.size
+            pos: self.pos
+    ScreenManager:
+        id: sm
+        Screen1:
+            name: 'screen_1'
+        Screen2:
+            name: 'screen_2'
+        Screen3:
+            name: 'screen_3'
+    GridLayout:
+        rows: 1
+        cols: 3
+        size_hint: (1, None)
+        height: dp(45)
+        pos_hint: {'top': 0.95}
+        Button:
+            text: 'static'
+            on_release:
+                root.ids.sm.current = 'screen_1'
+        Button:
+            text: 'moving\nbackground'
+            on_release:
+                root.ids.sm.current = 'screen_2'
+        Button:
+            text: 'moving\nFrostedGlass'
+            on_release:
+                root.ids.sm.current = 'screen_3'
+
+
+# Example 1
+<Screen1>:
+    Image:
+        id: background_image
+        source: 'kivy_logo.png'
+        size_hint: (1, 1)
+        allow_stretch: True
+        pos_hint: {'center_x': 0.5,'center_y': 0.5}
+
+    FrostedGlass:
+        background: background_image
+        size_hint: (0.48, 0.48)
+        pos_hint: {'top': 1}
+        blur_size: 30
+        luminosity: 1.5
+        overlay_color: 25/255, 100/255, 204/255, 0.9
+        border_radius: 0, 0, dp(50), 0
+
+    FrostedGlass:
+        background: background_image
+        size_hint: (0.48, 0.48)
+        pos_hint: {'right': 1,'top': 1}
+        blur_size: 30
+        luminosity: 1.5
+        border_radius: 0, 0, 0, dp(50)
+        overlay_color: 204/255, 174/255, 25/255, 0.9
+
+    FrostedGlass:
+        background: background_image
+        size_hint: (0.48, 0.48)
+        blur_size: 30
+        luminosity: 1.5
+        overlay_color: 25/255, 204/255, 94/255, 0.9
+        border_radius: 0, dp(50), 0, 0
+
+    FrostedGlass:
+        background: background_image
+        size_hint: (0.48, 0.48)
+        pos_hint: {'right': 1}
+        blur_size: 30
+        luminosity: 1.5
+        overlay_color: 204/255, 25/255, 55/255, 0.9
+        border_radius: dp(50), 0, 0, 0
+
+
+# Example 2
+<Screen2>:
+    ScrollView:
+        id: scroll_view
+        do_scroll_x: False
+        on_scroll_start:
+            frosted_glass.start_auto_update_effect()
+        on_scroll_stop:
+            frosted_glass.stop_auto_update_effect()
+
+        BoxLayout:
+            orientation: 'vertical'
+            size_hint: (1, 2)
+            Image:
+                source: 'kivy_logo.png'
+                size_hint: (1, 1)
+                allow_stretch: True
+                pos_hint: {'center_x': 0.5,'center_y': 0.5}
+            Image:
+                source: 'kivy_logo.png'
+                size_hint: (1, 1)
+                allow_stretch: True
+                pos_hint: {'center_x': 0.5,'center_y': 0.5}
+            Image:
+                source: 'kivy_logo.png'
+                size_hint: (1, 1)
+                allow_stretch: True
+                pos_hint: {'center_x': 0.5,'center_y': 0.5}
+
+    FrostedGlass:
+        id: frosted_glass
+        background: scroll_view
+        size_hint: (1, 0.12)
+        blur_size: 30
+        luminosity: 1.5
+        overlay_color: 25/255, 100/255, 204/255, 0.9
+
+
+# Example 3
+<Screen3>:
+    Image:
+        id: background_image
+        source: 'kivy_logo.png'
+        size_hint: (1, 1)
+        allow_stretch: True
+        pos_hint: {'center_x': 0.5,'center_y': 0.5}
+
+    ScrollView:
+        id: scroll_view
+        pos_hint: {'center_y': 0.5}
+        size_hint: (1, 0.7)
+        do_scroll_y: False
+        on_scroll_start:
+            frosted_glass_1.start_auto_update_effect()
+            frosted_glass_2.start_auto_update_effect()
+            frosted_glass_3.start_auto_update_effect()
+        on_scroll_stop:
+            frosted_glass_1.stop_auto_update_effect()
+            frosted_glass_2.stop_auto_update_effect()
+            frosted_glass_3.stop_auto_update_effect()
+
+        BoxLayout:
+            size_hint: (2, 1)
+            spacing: dp(20)
+            FrostedGlass:
+                id: frosted_glass_1
+                background: background_image
+                blur_size: 30
+                luminosity: 1.5
+                overlay_color: 204/255, 174/255, 25/255, 0.9
+                border_radius: dp(40), dp(40), dp(40), dp(40)
+
+            FrostedGlass:
+                id: frosted_glass_2
+                background: background_image
+                blur_size: 30
+                luminosity: 1.5
+                overlay_color: 25/255, 204/255, 94/255, 0.9
+                border_radius: dp(40), dp(40), dp(40), dp(40)
+
+            FrostedGlass:
+                id: frosted_glass_3
+                background: background_image
+                blur_size: 30
+                luminosity: 1.5
+                overlay_color: 204/255, 25/255, 55/255, 0.9
+                border_radius: dp(40), dp(40), dp(40), dp(40)
