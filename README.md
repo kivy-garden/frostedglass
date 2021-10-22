@@ -15,7 +15,39 @@ The effect is drawn on the FrostedGlass canvas, based on the widget passed in as
 ## Import
     from kivy_garden.frostedglass import FrostedGlass
 
-## Example:
+## Usage
+
+*FrostedGlass* will apply the effect to the background passed to it. Make sure you assign the correct id of the widget/layout that is behind *FrostedGlass* to the `background` property.
+
+⚠️ *FrostedGlass* does not support child widgets/layouts.
+
+✔️ The correct way to place widgets/layouts over *FrostedGlass*:
+
+```python
+FrostedGlass:
+    ...
+FloatLayout:
+    ...
+    Label:
+        ...
+    Button
+        ...
+```
+
+❌ Don't:
+
+```python
+FrostedGlass:
+    ...
+    FloatLayout:
+        ...
+        Label:
+            ...
+        Button
+            ...
+```
+
+### Example:
 
 ![](https://github.com/kivy-garden/frostedglass/blob/main/doc/images/img2.png?raw=true)
 
