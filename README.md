@@ -1,10 +1,11 @@
 # FrostedGlass
 
-**FrostedGlass** is a translucent frosted glass effect widget, that creates a context with the background behind it.
+**FrostedGlass** is a widget with translucent frosted glass effect, that creates a context with the background behind it.
 
-The effect is drawn on the FrostedGlass canvas, based on the widget passed in as the background.
+The effect created is based on the widget passed in as the background. You can control the blur size, saturation, luminosity, overlay color, noise opacity, border radius and the outline (color and width).
 
-![](https://github.com/kivy-garden/frostedglass/blob/main/doc/images/img1.png?raw=true)
+![](https://github.com/DexerBR/frostedglass/blob/pre-release/doc/images/example_1.png?raw=true)
+![](https://github.com/DexerBR/frostedglass/blob/pre-release/doc/images/example_2.gif?raw=true)
 
 [![Github Build Status](https://github.com/kivy-garden/frostedglass/workflows/Garden%20flower/badge.svg)](https://github.com/kivy-garden/frostedglass/actions)
 [![PyPI](https://img.shields.io/pypi/v/kivy_garden.frostedglass?)](https://pypi.org/project/kivy-garden.frostedglass/)
@@ -19,109 +20,82 @@ The effect is drawn on the FrostedGlass canvas, based on the widget passed in as
 
 *FrostedGlass* will apply the effect to the background passed to it. Make sure you assign the correct id of the widget/layout that is behind *FrostedGlass* to the `background` property.
 
-⚠️ *FrostedGlass* does not support child widgets/layouts.
+## Example:
 
-✔️ The correct way to place widgets/layouts over *FrostedGlass*:
+<img src="https://github.com/DexerBR/frostedglass/blob/pre-release/doc/images/kivy_example.png?raw=true">
 
-```python
-FrostedGlass:
-    ...
-FloatLayout:
-    ...
-    Label:
-        ...
-    Button
-        ...
-```
-
-❌ Don't:
-
-```python
-FrostedGlass:
-    ...
-    FloatLayout:
-        ...
-        Label:
-            ...
-        Button
-            ...
-```
-
-### Example:
-
-![](https://github.com/kivy-garden/frostedglass/blob/main/doc/images/img2.png?raw=true)
-
-```python
+```kvlang
 Image:
     id: bg_image
-    pos_hint: {'center_x': 0.5,'center_y': 0.5}
-    size_hint: (None, None)
-    size: (350, 350)
-    source: 'live/kivy_logo.png'
+    pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+    source: 'kivy_logo.png'
 
 FrostedGlass:
     pos_hint: {'center_x': 0.5, 'center_y': 0.5}
     size_hint: (None, None)
-    size: (180, 150)
+    size: (180, 130)
     background: bg_image
-    blur_size: 25
-    luminosity: 1.1
-    overlay_color: 0.75, 0.75, 0, 0.65
-    border_radius: 0, 150, 0, 150
-Label:
-    text: 'FrostedGlass'
-    color: 'black'
-    font_size: '26sp'
-    bold: True
+    blur_size: 20
+    saturation: 1.0
+    luminosity: 1.5
+    overlay_color: "#FFB9008C"
+    noise_opacity: 0.15
+    border_radius:  dp(0), dp(100), dp(0), dp(100)
+    outline_color: "#000000"
+    outline_width: 1.2
+    Label:
+        text: 'FrostedGlass'
+        pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+        bold: True
+        color: 'black'
+        font_size: dp(25)
 ```
+### You can find more usage examples in the 🔷[examples folder](https://github.com/DexerBR/frostedglass/tree/pre-release/examples)🔷
 
-### **You can find more usage examples, including uses with ScrollView in the [*examples*](https://github.com/kivy-garden/frostedglass/tree/main/examples) folder.**
+---
+
+## Overview of *FrostedGlass* creation process
+
+To reach the final result of the FrostedGlass widget, the steps described in the image below are followed:
+
+![](https://github.com/DexerBR/frostedglass/blob/pre-release/doc/images/FrostedgGlass_overview.png?raw=true)
 
 ---
 
-## FrostedGlass creation process, guidelines and contribuition
+## Guidelines
+The FrostedGlass widget will attempt to update the effect whenever there is a change to its properties or background properties that require an effect update to keep the effect in sync. But if it doesn't, you can call the `update_effect()` method manually to update the effect.
 
-To reach the final result of the FrostedGlass widget, the steps described in the image below are followed
-
-![](https://github.com/kivy-garden/frostedglass/blob/main/doc/images/FrostedGlass_components.png?raw=true)
-
-### Guidelines
-- When using FrostedGlass with static backgrounds, it is not necessary to update the FrostedGlass effect, but if necessary at some point, just call the `update_effect()` method.
-- If the background moves relative to FrostedGlass, or FrostedGlass moves relative to the background, it is necessary to call the `start_auto_update_effect` method to update the effect automatically. Don't forget to call the `stop_auto_update_effect` method, to avoid FPS drop, when the movement stops and it is **not necessary** to keep the effect updating continuously. The recommended way to do this is found in the [examples](https://github.com/kivy-garden/frostedglass/tree/main/examples) folder.
-- In the current version (**v0.1.1rc1**) the less FrostedGlass you use, the smaller they are, and the less you need to continually update them, the better the performance, and you will notice very few changes in the FPS.
-- If you use FrostedGlass efficiently, there will be no performance drop, and you will still enjoy a modern look in your apps.
-
-### FrostedGlass is currently under development, and some issues can be noticed in version *0.1.1rc1*:
-- FPS drop when using large or multiple FrostedGlass widgets, which need to be continuously automatically updated.
-- Temporary FPS drop when you touch the screen, even using static FrostedGlass widgets (which don't need to be automatically updated). The FPS goes up right after touch up.
-
-
-
-
-### 🔴 Encouraged contributions and starting point guides 🔴
-- Considering the issues mentioned above, it is recommended that work be done to resolve these issues.
-- Improving shader performance in performing Gaussian blur can significantly increase FrostedGlass performance. Knowledge in OpenGL can help a lot here!
-- Adding manipulations to the Vertex Shader, in addition to what is done here (only Fragment Shader), can be important in improving performance.
-- FBO manipulations are a hypothetical point for performance improvement.
-- Perhaps saving the effect temporarily in cache, and computing just its position can be an important factor. Other caching implementations may also be useful.
+If calling the `update_effect()` method did not update the effect, you may need to call the `refresh_effect()` method. But beware, calling this effect continuously in a small interval of time can reduce the widget's performance.
 
 ---
-## API
+
+## **API**
 
     background
 
 > Target widget/layout that will be used as a background to FrostedGlass.
 > The recomended way to pass the widget is through the widget/layout **id**.
 > 
-> `background` is defaults to None.
+> `background` is defaults to `None`.
 
 <br/>
 
     blur_size
 
 > Size of the gaussian blur aplied to the background.
->
-> `blur_size` is defaults to 60.
+
+❗️*Note: Do not pass relative values such as **dp** or **sp**. FrostedGlass already
+    manages this automatically, according to the device's screen density.*
+
+> `blur_size` is defaults to `25`.
+
+<br/>
+
+    saturation
+
+> Saturation boost that will be aplied to the background.
+> 
+> `saturation` is defaults to `1.2`.
 
 <br/>
 
@@ -129,15 +103,16 @@ To reach the final result of the FrostedGlass widget, the steps described in the
 
 > Luminosity boost that will be aplied to the background.
 > 
-> `luminosity` is defaults to 1.25.
+> `luminosity` is defaults to `1.3`.
+
 
 <br/>
 
     overlay_color
 
-> Color/tint overlay.
+> Color/tint overlay that will be aplied over the background.
 > 
-> `overlay_color` is defaults to [1, 1, 1, 0.6].
+> `overlay_color` is defaults to `[0.5, 0.5, 0.5, 0.35]`.
 
 <br/>
 
@@ -145,47 +120,56 @@ To reach the final result of the FrostedGlass widget, the steps described in the
 
 > Opacity of the noise texture layer.
 > 
-> `noise_opacity` is a defaults to 0.1.
-
-<br/>
-
-    downscale_factor
-
-> Determine how many times the FBO size will be reduced.
-> This property affects the performane directly. As bigger the FBO is, more slow will be the process to compute the gaussian blur resulting in significative fps drop.
-> 
-> `downscale_factor` is defaults to 8.
+> `noise_opacity` is a defaults to `0.08`.
 
 <br/>
 
     border_radius
 
-> Border radius that will be used by the default canvas shape (RoundedRectangle).
+> Specifies the radius used for the rounded corners clockwise:
+> top-left, top-right, bottom-right, bottom-left.
 > 
-> `border_radius` is defaults to [0, 0, 0, 0].
+> `border_radius` is defaults to `[0, 0, 0, 0]`.
 
 <br/>
+
+    outline_color
+
+> Outline color.
+> 
+> `outline_color` is defaults to `[1, 1, 1, 1]`.
+
+<br/>
+
+    outline_width
+
+> Outline width.
+> 
+> `outline_width` is defaults to `1`.
+
+<br/>
+
+
 
     update_effect()
 
-> Updates the effect only once with each method call. If you only need to change the effect once in a while, it is recommended that you call this method.
-> If you need constant updates, it is recommended to use `start_auto_update_effect` and `start_auto_update_effect` to manage this.
+> Updates the effect only once with each method call.
+
+❗️*Note: Use this method to update the effect only if it doesn't update automatically.*
 
 <br/>
 
-    start_auto_update_effect()
+    refresh_effect()
 
-> Start automatic update of effect. The automatic update will remain active until you call the `stop_auto_update_effect()` method.
-> Can be called multiple times without problems, but will only run once.
+> Updates the effect only once with each method call. Sould be used as an alternative, when `update_effect()` doesn't update the effect totally.
 
-<br/>
+❗️*Note: Use this method to update the effect only if it doesn't update automatically and `update_effect()` doesn't update the effect.*
 
-    stop_auto_update_effect()
+❗️*Note: Unlike `update_effect()` method, `refresh_effect()` will refresh the FBO on each call, wich can lead to a performance drop if called continuously on a small interval of time.*
 
-> Stop automatic update of effect.
-> It is recommended that you call this method whenever you do not need the effect to keep updating automatically. As this prevents FPS drop.
+---
 
-<br/>
+<br>
 
 CI
 --

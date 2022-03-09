@@ -41,53 +41,76 @@
         size_hint: (1, 1)
         allow_stretch: True
         pos_hint: {'center_x': 0.5,'center_y': 0.5}
+        canvas.before:
+            Color:
+                rgba: rgba("#FFB74D")
+            Rectangle:
+                size: self.size
+                pos: self.pos
 
     FrostedGlass:
         background: background_image
         size_hint: (0.48, 0.48)
         pos_hint: {'top': 1}
-        blur_size: 30
-        luminosity: 1.5
-        overlay_color: 25/255, 100/255, 204/255, 0.9
-        border_radius: 0, 0, dp(50), 0
+        blur_size: 10
+        saturation: 1.2
+        luminosity: 1.3
+        overlay_color: "#ffffffA6"
+        noise_opacity: 0.1
+        border_radius:  0, 0, dp(50), 0
+        outline_color: "#000000"
+        outline_width: 1
 
     FrostedGlass:
         background: background_image
         size_hint: (0.48, 0.48)
         pos_hint: {'right': 1,'top': 1}
-        blur_size: 30
-        luminosity: 1.5
-        border_radius: 0, 0, 0, dp(50)
-        overlay_color: 204/255, 174/255, 25/255, 0.9
-
-    FrostedGlass:
-        background: background_image
-        size_hint: (0.48, 0.48)
-        blur_size: 30
-        luminosity: 1.5
-        overlay_color: 25/255, 204/255, 94/255, 0.9
-        border_radius: 0, dp(50), 0, 0
+        blur_size: 20
+        saturation: 1.2
+        luminosity: 1.4
+        overlay_color: "#388E3CA6"
+        noise_opacity: 0.1
+        border_radius:  0, 0, 0, dp(50)
+        outline_color: "#388E3C"
+        outline_width: 1
 
     FrostedGlass:
         background: background_image
         size_hint: (0.48, 0.48)
         pos_hint: {'right': 1}
         blur_size: 30
-        luminosity: 1.5
-        overlay_color: 204/255, 25/255, 55/255, 0.9
-        border_radius: dp(50), 0, 0, 0
+        saturation: 1.2
+        luminosity: 1.4
+        overlay_color: "#D32F2FA6"
+        noise_opacity: 0.1
+        border_radius:  dp(50), 0, 0, 0
+        outline_color: "#D32F2F"
+        outline_width: 1
+
+    FrostedGlass:
+        background: background_image
+        size_hint: (0.48, 0.48)
+        blur_size: 40
+        saturation: 1.2
+        luminosity: 1.4
+        overlay_color: "#1976D2A6"
+        noise_opacity: 0.1
+        border_radius:  0, dp(50), 0, 0
+        outline_color: "#1976D2"
+        outline_width: 1
+
 
 
 # Example 2
 <Screen2>:
     ScrollView:
         id: scroll_view
-        do_scroll_x: False
-        on_scroll_start:
-            frosted_glass.start_auto_update_effect()
-        on_scroll_stop:
-            frosted_glass.stop_auto_update_effect()
-
+        canvas.before:
+            Color:
+                rgba: rgba("#0097A7")
+            Rectangle:
+                size: self.size
+                pos: self.pos
         BoxLayout:
             orientation: 'vertical'
             size_hint: (1, 2)
@@ -108,60 +131,74 @@
                 pos_hint: {'center_x': 0.5,'center_y': 0.5}
 
     FrostedGlass:
-        id: frosted_glass
+        pos_hint: {'center_x': 0.5,'center_y': 0.5}
         background: scroll_view
-        size_hint: (1, 0.12)
-        blur_size: 30
-        luminosity: 1.5
-        overlay_color: 25/255, 100/255, 204/255, 0.9
+        size_hint: (0.7, 0.35)
+        blur_size: 25
+        saturation: 1.2
+        luminosity: 1.2
+        overlay_color: "#F57C00A6"
+        noise_opacity: 0.13
+        border_radius:  dp(20), dp(20), dp(20), dp(20)
+        outline_color: "#F57C00"
+        outline_width: 0.5
 
 
 # Example 3
 <Screen3>:
     Image:
         id: background_image
-        source: 'kivy_logo.png'
+        source: 'bg_example.png'
         size_hint: (1, 1)
         allow_stretch: True
         pos_hint: {'center_x': 0.5,'center_y': 0.5}
+        canvas.before:
+            Color:
+                rgba: rgba("#FFB74D")
+            Rectangle:
+                size: self.size
+                pos: self.pos
 
     ScrollView:
         id: scroll_view
         pos_hint: {'center_y': 0.5}
-        size_hint: (1, 0.7)
+        size_hint: (1, 0.4)
         do_scroll_y: False
-        on_scroll_start:
-            frosted_glass_1.start_auto_update_effect()
-            frosted_glass_2.start_auto_update_effect()
-            frosted_glass_3.start_auto_update_effect()
-        on_scroll_stop:
-            frosted_glass_1.stop_auto_update_effect()
-            frosted_glass_2.stop_auto_update_effect()
-            frosted_glass_3.stop_auto_update_effect()
 
         BoxLayout:
             size_hint: (2, 1)
-            spacing: dp(20)
+            spacing: dp(30)
+            padding: dp(10)
             FrostedGlass:
-                id: frosted_glass_1
                 background: background_image
-                blur_size: 30
+                size_hint: (0.4, 1)
+                blur_size: 20
+                saturation: 1.2
                 luminosity: 1.5
-                overlay_color: 204/255, 174/255, 25/255, 0.9
-                border_radius: dp(40), dp(40), dp(40), dp(40)
-
+                overlay_color: "#76FF03A6"
+                noise_opacity: 0.1
+                border_radius:  dp(10), dp(10), dp(10), dp(10)
+                outline_color: "#76FF03"
+                outline_width: 1
             FrostedGlass:
-                id: frosted_glass_2
                 background: background_image
-                blur_size: 30
+                size_hint: (0.4, 1)
+                blur_size: 35
+                saturation: 1.2
                 luminosity: 1.5
-                overlay_color: 25/255, 204/255, 94/255, 0.9
-                border_radius: dp(40), dp(40), dp(40), dp(40)
-
+                overlay_color: "#FDD835A6"
+                noise_opacity: 0.1
+                border_radius:  dp(10), dp(10), dp(10), dp(10)
+                outline_color: "#FDD835"
+                outline_width: 1
             FrostedGlass:
-                id: frosted_glass_3
                 background: background_image
-                blur_size: 30
+                size_hint: (0.4, 1)
+                blur_size: 50
+                saturation: 1.5
                 luminosity: 1.5
-                overlay_color: 204/255, 25/255, 55/255, 0.9
-                border_radius: dp(40), dp(40), dp(40), dp(40)
+                overlay_color: "#808080A6"
+                noise_opacity: 0.1
+                border_radius:  dp(10), dp(10), dp(10), dp(10)
+                outline_color: "#000000"
+                outline_width: 1
