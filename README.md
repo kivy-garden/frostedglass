@@ -4,8 +4,8 @@
 
 The effect created is based on the widget passed in as the background. You can control the blur size, saturation, luminosity, overlay color, noise opacity, border radius and the outline (color and width).
 
-![](https://github.com/kivy-garden/frostedglass/blob/develop/doc/images/example_1.png?raw=true)
-![](https://github.com/kivy-garden/frostedglass/blob/develop/doc/images/example_2.gif?raw=true)
+![](https://github.com/kivy-garden/frostedglass/blob/main/doc/images/example_1.png?raw=true)
+![](https://github.com/kivy-garden/frostedglass/blob/main/doc/images/example_2.gif?raw=true)
 
 [![Github Build Status](https://github.com/kivy-garden/frostedglass/workflows/Garden%20flower/badge.svg)](https://github.com/kivy-garden/frostedglass/actions)
 [![PyPI](https://img.shields.io/pypi/v/kivy_garden.frostedglass?)](https://pypi.org/project/kivy-garden.frostedglass/)
@@ -22,7 +22,7 @@ The effect created is based on the widget passed in as the background. You can c
 
 ## Example:
 
-<img src="https://github.com/kivy-garden/frostedglass/blob/develop/doc/images/kivy_example.png?raw=true">
+<img src="https://github.com/kivy-garden/frostedglass/blob/main/doc/images/kivy_example.png?raw=true">
 
 ```kvlang
 Image:
@@ -50,7 +50,7 @@ FrostedGlass:
         color: 'black'
         font_size: dp(25)
 ```
-### You can find more usage examples in the 🔷[examples folder](https://github.com/kivy-garden/frostedglass/tree/develop/examples)🔷
+### You can find more usage examples in the 🔷[examples folder](https://github.com/kivy-garden/frostedglass/tree/main/examples)🔷
 
 ---
 
@@ -58,7 +58,7 @@ FrostedGlass:
 
 To reach the final result of the FrostedGlass widget, the steps described in the image below are followed:
 
-![](https://github.com/kivy-garden/frostedglass/blob/develop/doc/images/FrostedgGlass_overview.png?raw=true)
+![](https://github.com/kivy-garden/frostedglass/blob/main/doc/images/FrostedgGlass_overview.png?raw=true)
 
 ---
 
