@@ -1,3 +1,33 @@
+#: import Factory kivy.factory.Factory
+
+<FrostedGlassMV@ModalView>:
+    size_hint: 0.85, 0.4
+    frosted_glass_bg: None
+    background_color: 0, 0, 0, 0
+    FrostedGlass:
+        pos_hint: {'center_x': 0.5,'center_y': 0.5}
+        background: root.frosted_glass_bg
+        blur_size: 35
+        saturation: 1.2
+        luminosity: 1.2
+        overlay_color: "FFB90080"
+        noise_opacity: 0.13
+        border_radius:  dp(5), dp(50), dp(5), dp(50)
+        outline_color: self.overlay_color
+        outline_width: 0.5
+        BoxLayout:
+            size_hint: 0.8, 0.15
+            pos_hint: {'center_x': 0.5,'y': 0.1}
+            spacing: dp(20)
+            Button:
+                text: "cancel"
+                on_release:
+                    root.dismiss()
+            Button:
+                text: "ok"
+                on_release:
+                    root.dismiss()
+
 <UI>:
     canvas:
         Color:
@@ -13,12 +43,14 @@
             name: 'screen_2'
         Screen3:
             name: 'screen_3'
+        Screen4:
+            name: 'screen_4'
     GridLayout:
-        rows: 1
-        cols: 3
+        rows: 2
+        cols: 2
         size_hint: (1, None)
-        height: dp(45)
-        pos_hint: {'top': 0.95}
+        height: dp(90)
+        pos_hint: {'top': 0.98}
         Button:
             text: 'static'
             on_release:
@@ -31,6 +63,10 @@
             text: 'moving\nFrostedGlass'
             on_release:
                 root.ids.sm.current = 'screen_3'
+        Button:
+            text: 'inside\nModalView'
+            on_release:
+                root.ids.sm.current = 'screen_4'
 
 
 # Example 1
@@ -202,3 +238,44 @@
                 border_radius:  dp(10), dp(10), dp(10), dp(10)
                 outline_color: "#000000"
                 outline_width: 1
+
+
+# Example 4
+<Screen4>:
+    id: screen_4
+    ScrollView:
+        id: scroll_view
+        canvas.before:
+            Color:
+                rgba: rgba("#0097A7")
+            Rectangle:
+                size: self.size
+                pos: self.pos
+        BoxLayout:
+            orientation: 'vertical'
+            size_hint: (1, 2)
+            Image:
+                source: 'kivy_logo.png'
+                size_hint: (1, 1)
+                allow_stretch: True
+                pos_hint: {'center_x': 0.5,'center_y': 0.5}
+            Image:
+                source: 'kivy_logo.png'
+                size_hint: (1, 1)
+                allow_stretch: True
+                pos_hint: {'center_x': 0.5,'center_y': 0.5}
+            Image:
+                source: 'kivy_logo.png'
+                size_hint: (1, 1)
+                allow_stretch: True
+                pos_hint: {'center_x': 0.5,'center_y': 0.5}
+
+    Button:
+        text: "Open"
+        size_hint: None, None
+        size: dp(100), dp(40)
+        pos_hint: {'center_x': 0.5,'center_y': 0.15}
+        on_press:
+            popup = Factory.FrostedGlassMV()
+            popup.frosted_glass_bg = screen_4
+            popup.open()
