@@ -79,7 +79,7 @@ void main (void) {
 
 vertical_blur_shader = """
 #ifdef GL_ES
-precision lowp float;
+    precision lowp float;
 #endif
 
 /* Outputs from the vertex shader */
@@ -117,7 +117,7 @@ vec4 effect(vec4 color, sampler2D texture, vec2 tex_coords, vec2 coords)
 
 horizontal_blur_shader = """
 #ifdef GL_ES
-precision lowp float;
+    precision lowp float;
 #endif
 
 /* Outputs from the vertex shader */
@@ -167,7 +167,7 @@ void main (void){
 
 noise_shader = """
 #ifdef GL_ES
-precision highp float;
+    precision highp float;
 #endif
 
 /* Outputs from the vertex shader */
@@ -419,7 +419,7 @@ class FrostedGlass(FloatLayout):
         self.frosted_glass_effect.canvas.shader.fs = final_shader_effect
         self.frosted_glass_effect.canvas.shader.vs = vertex_shader
 
-        self.add_widget(self.frosted_glass_effect)
+        self.canvas.add(self.frosted_glass_effect.canvas)
 
         with self.canvas:
             self._outline_color = Color(rgba=self.outline_color)
@@ -436,55 +436,77 @@ class FrostedGlass(FloatLayout):
         self.noise = Noise()
 
         self.last_value = 0
-        self.last_value_list = [0, 0]
         self.last_update_time = 0
+        self.last_blur_size_value = 0
+        self.last_value_list = [0, 0]
+        self.last_fbo_pos = [None, None]
 
         self.update_fbo_effect()
 
     def update_effect(self, *args, type=None):
-        Clock.schedule_once(partial(self.update_glsl, type), 0)
+        Clock.schedule_once(lambda _: self.update_glsl(type), 0)
 
     def refresh_effect(self, *args):
         self.update_fbo_effect()
         self.update_effect(type=type)
 
     def update_glsl(self, *args):
+        pos = self.to_window(*self.pos)
         fge_canvas = self.frosted_glass_effect.canvas
 
+        fge_canvas["position"] = [float(v) for v in pos]
+        fge_canvas["resolution"] = [float(v) for v in self.size]
         fge_canvas["luminosity"] = float(self.luminosity)
         fge_canvas["saturation"] = float(self.saturation)
         fge_canvas["noise_opacity"] = float(self.noise_opacity)
         fge_canvas["color_overlay"] = [float(v) for v in self.overlay_color]
 
-        pos = self.to_window(*self.pos)
-        fge_canvas["resolution"] = [float(v) for v in self.size]
-        fge_canvas["position"] = [float(v) for v in pos]
-
+        performance_fbo_size = (min(self.width, 150), min(self.height, 150))
         if "in_motion" in args:
-            self.update_fbo_effect(True)
+            if (
+                self.fbo_1.size != performance_fbo_size
+                or self.fbo_2.size != performance_fbo_size
+            ):
+                if None in self.last_fbo_pos:
+                    Clock.schedule_once(lambda *args: self.update_fbo_effect(True, self.to_window(*self.pos, initial=False)), 0)
+                else:
+                    Clock.schedule_once(lambda *args: self.update_fbo_effect(True, pos), 0)
+
+            if None in self.last_fbo_pos:
+                self.last_fbo_pos = pos
+            
+            _pos = -(pos[0] - self.last_fbo_pos[0]), -(pos[1] - self.last_fbo_pos[1])
+            self.fbo_1_translate.x += _pos[0]
+            self.fbo_2_translate.x += _pos[0]
+            self.fbo_1_translate.y += _pos[1]
+            self.fbo_2_translate.y += _pos[1]
+
         elif (
-            self.fbo_1.size == (min(self.width, 150), min(self.height, 150))
-            or self.fbo_2.size == (min(self.width, 150), min(self.height, 150))
+            self.fbo_1.size == performance_fbo_size
+            or self.fbo_2.size == performance_fbo_size
         ):
-            self.update_fbo_effect()
+            self.last_fbo_pos = [None, None]
+            Clock.schedule_once(lambda *args: self.update_fbo_effect(), 0)
+        self.last_fbo_pos = pos
 
-        self.vertical_blur.fbo = self.fbo_1
-        self.vertical_blur.fbo.add(self.background.canvas)
-        self.vertical_blur.fbo.draw()
-        self.vertical_blur.rect.size = self.size
-        self.vertical_blur.rect.pos = pos
-        self.vertical_blur.rect.texture = self.vertical_blur.fbo.texture
-        self.vertical_blur.fbo.remove(self.background.canvas)
-
-        self.horizontal_blur.fbo = self.fbo_2
-        self.horizontal_blur.fbo.add(self.vertical_blur.canvas)
-        self.horizontal_blur.fbo.draw()
-        self.horizontal_blur.fbo.remove(self.vertical_blur.canvas)
-
-        final_texture = self.fbo_2.texture
-        self.bt_1.texture = final_texture
+        self.bt_1.texture = self._get_final_texture(pos)
         fge_canvas["texture1"] = 1
         fge_canvas.ask_update()
+    
+    def _get_final_texture(self, pos):
+        self.fbo_1.add(self.background.canvas)
+        self.fbo_1.draw()
+        self.vertical_blur.rect.size = self.size
+        self.vertical_blur.rect.pos = pos
+        self.fbo_1.remove(self.background.canvas)
+        self.vertical_blur.rect.texture = self.fbo_1.texture
+        
+        self.fbo_2.add(self.vertical_blur.canvas)
+        self.fbo_2.draw()
+        texture = self.fbo_2.texture
+        self.fbo_2.remove(self.vertical_blur.canvas)
+
+        return texture
 
     def on_touch_down(self, touch):
         if self.collide_point(*touch.pos):
@@ -499,7 +521,8 @@ class FrostedGlass(FloatLayout):
         self.update_noise_texture()
 
     def update_noise_texture(self):
-        self.fbo_noise = Fbo(size=(self.width/dp(1), self.height/dp(1)))
+        fbo_size = max(1, self.width/dp(1)), max(1, self.height/dp(1))
+        self.fbo_noise = Fbo(size=fbo_size)
         self.noise.fbo = self.fbo_noise
         self.noise.rect.size = self.size
         self.noise.fbo.add(self.noise.canvas)
@@ -538,36 +561,45 @@ class FrostedGlass(FloatLayout):
         )
 
     def on_blur_size(self, instance, blur_size):
-        self.vertical_blur.blur_size = dp(blur_size)
-        self.horizontal_blur.blur_size = dp(blur_size)
-        self.update_fbo_effect()
-        self.update_effect()
+        blur_size = int(blur_size)
+        if blur_size != self.last_blur_size_value:
+            self.vertical_blur.blur_size = dp(blur_size)
+            self.horizontal_blur.blur_size = dp(blur_size)
+            self.update_fbo_effect()
+            self.update_effect()
+            self.last_blur_size_value = int(blur_size)
 
-    def update_fbo_effect(self, improve_performance=False):
+    def update_fbo_effect(self, improve_performance=False, pos=None):
         if improve_performance:
             fbo_size = (min(self.width, 150), min(self.height, 150))
         else:
             fbo_size = (min(self.width, 250), min(self.height, 250))
+        
+        size = max(1, self.width), max(1, self.height)
+        fbo_size = max(1, fbo_size[0]), max(1, fbo_size[1])
 
         self.fbo_1 = Fbo(size=fbo_size)
         self.fbo_2 = Fbo(size=fbo_size)
 
-        pos = self.to_window(*self.pos)
-        x = 1/(self.width/fbo_size[0])
-        y = 1/(self.height/fbo_size[1])
+        pos = pos or self.to_window(*self.pos)
+        x = 1/(size[0]/fbo_size[0])
+        y = 1/(size[1]/fbo_size[1])
         z = 1
 
         with self.fbo_1:
             ClearColor(0, 0, 0, 0)
             ClearBuffers()
             Scale(x, y, z)
-            Translate(-pos[0], -pos[1])
+            self.fbo_1_translate = Translate(-pos[0], -pos[1])
 
         with self.fbo_2:
             ClearColor(0, 0, 0, 0)
             ClearBuffers()
             Scale(x, y, z)
-            Translate(-pos[0], -pos[1])
+            self.fbo_2_translate = Translate(-pos[0], -pos[1])
+        
+        self.vertical_blur.fbo = self.fbo_1
+        self.horizontal_blur.fbo = self.fbo_2
 
     def on_background(self, *args):
         self.bind_parent_properties(self.background)
@@ -638,31 +670,32 @@ class FrostedGlass(FloatLayout):
             elif isinstance(widget, Screen):
                 widget.bind(on_enter=self.refresh_effect)
             else:
-                widget.bind(
-                    size=self.trigger_update_effect,
-                    pos=self.trigger_update_effect
-                )
+                widget.bind(size=self.update_effect)
+                try:
+                    widget.bind(pos=self.update_effect)
+                except Exception:
+                    pass
 
-            if widget.parent:
+            if widget.parent and widget != widget.parent:
                 widget = widget.parent
             else:
                 break
 
-    def trigger_update_effect(self, widget, value, type=None):
-        delta_time = now() - self.last_update_time
+    def trigger_update_effect(self, widget=None, value=None, type=None):
+        allow_update_by_timeout = (now() - self.last_update_time) >= 0.016
         if value is None:
             self.update_effect(type=type)
 
-        elif (
+        if (
             (isinstance(value, int) or isinstance(value, float))
-            and delta_time >= 0.016 and round(value, 3) != self.last_value
+            and allow_update_by_timeout and round(value, 3) != self.last_value
         ):
             self.update_effect(type=type)
             self.last_value = round(value, 3)
             self.last_update_time = now()
 
         elif (
-            isinstance(value, list) and delta_time >= 0.016
+            isinstance(value, list) and allow_update_by_timeout
             and (
                 round(value[0], 2) != self.last_value_list[0]
                 or round(value[1], 2) != self.last_value_list[1]
