@@ -468,14 +468,21 @@ class FrostedGlass(FloatLayout):
                 or self.fbo_2.size != performance_fbo_size
             ):
                 if None in self.last_fbo_pos:
-                    Clock.schedule_once(lambda *args: self.update_fbo_effect(True, self.to_window(*self.pos, initial=False)), 0)
+                    Clock.schedule_once(lambda *args: self.update_fbo_effect(
+                        True, self.to_window(*self.pos, initial=False)), 0
+                    )
                 else:
-                    Clock.schedule_once(lambda *args: self.update_fbo_effect(True, pos), 0)
+                    Clock.schedule_once(lambda *args: self.update_fbo_effect(
+                        True, pos), 0
+                    )
 
             if None in self.last_fbo_pos:
                 self.last_fbo_pos = pos
-            
-            _pos = -(pos[0] - self.last_fbo_pos[0]), -(pos[1] - self.last_fbo_pos[1])
+
+            _pos = [
+                -(pos[0] - self.last_fbo_pos[0]),
+                -(pos[1] - self.last_fbo_pos[1])
+            ]
             self.fbo_1_translate.x += _pos[0]
             self.fbo_2_translate.x += _pos[0]
             self.fbo_1_translate.y += _pos[1]
