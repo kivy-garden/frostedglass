@@ -7,10 +7,10 @@
     FrostedGlass:
         pos_hint: {'center_x': 0.5,'center_y': 0.5}
         background: root.frosted_glass_bg
-        blur_size: 35
+        blur_size: 30
         saturation: 1.2
         luminosity: 1.2
-        overlay_color: "FFB90080"
+        overlay_color: "FFFFFF80"
         noise_opacity: 0.13
         border_radius:  dp(5), dp(50), dp(5), dp(50)
         outline_color: self.overlay_color
@@ -247,7 +247,7 @@
         id: scroll_view
         canvas.before:
             Color:
-                rgba: rgba("#0097A7")
+                rgba: rgba("#76FF03")
             Rectangle:
                 size: self.size
                 pos: self.pos
