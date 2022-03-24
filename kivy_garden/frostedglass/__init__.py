@@ -499,7 +499,7 @@ class FrostedGlass(FloatLayout):
         self.bt_1.texture = self._get_final_texture(pos)
         fge_canvas["texture1"] = 1
         fge_canvas.ask_update()
-    
+
     def _get_final_texture(self, pos):
         self.fbo_1.add(self.background.canvas)
         self.fbo_1.draw()
@@ -507,7 +507,7 @@ class FrostedGlass(FloatLayout):
         self.vertical_blur.rect.pos = pos
         self.fbo_1.remove(self.background.canvas)
         self.vertical_blur.rect.texture = self.fbo_1.texture
-        
+
         self.fbo_2.add(self.vertical_blur.canvas)
         self.fbo_2.draw()
         texture = self.fbo_2.texture
@@ -581,7 +581,7 @@ class FrostedGlass(FloatLayout):
             fbo_size = (min(self.width, 150), min(self.height, 150))
         else:
             fbo_size = (min(self.width, 250), min(self.height, 250))
-        
+
         size = max(1, self.width), max(1, self.height)
         fbo_size = max(1, fbo_size[0]), max(1, fbo_size[1])
 
@@ -604,7 +604,7 @@ class FrostedGlass(FloatLayout):
             ClearBuffers()
             Scale(x, y, z)
             self.fbo_2_translate = Translate(-pos[0], -pos[1])
-        
+
         self.vertical_blur.fbo = self.fbo_1
         self.horizontal_blur.fbo = self.fbo_2
 
