@@ -616,6 +616,21 @@ class FrostedGlass(FloatLayout):
         self.bind_parent_properties(self.parent, check_in_motion=True)
 
     def bind_children_properties(self, widget):
+        w_parent = self.parent
+        w_parent_list = []
+
+        while True:
+            w_parent_list.append(w_parent)
+            if (
+                hasattr(w_parent, "open")
+                or hasattr(w_parent, "on_open")
+            ):
+                return
+            if w_parent.parent and w_parent != w_parent.parent:
+                w_parent = w_parent.parent
+            else:
+                break
+
         children_list = widget.children
         children_list_temp = []
         while children_list:
