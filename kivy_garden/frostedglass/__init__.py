@@ -2,11 +2,12 @@
 FrostedGlass
 ============
 
-The :class:`FrostedGlass` is a translucent frosted glass effect widget, that
-creates a context with the background behind it.
+FrostedGlass is a widget with translucent frosted glass effect, that creates a
+context with the background behind it.
 
-The effect is drawn on the FrostedGlass canvas, based on the widget passed in
-as the background.
+The effect created is based on the widget passed in as the background. You can
+control the blur size, saturation, luminosity, overlay color, noise opacity,
+border radius and the outline (color and width).
 """
 
 __all__ = ('FrostedGlass', )
@@ -45,6 +46,7 @@ from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.screenmanager import Screen
 from kivy.uix.image import Image
+from kivy.uix.video import Video
 
 
 MEAN_RES = (Window.width + Window.height)/2
@@ -214,17 +216,6 @@ uniform vec2 resolution;
 uniform vec4 color_overlay;
 uniform sampler2D texture1;
 uniform sampler2D texture2;
-
-
-float noise(vec2 co)
-{
-    float a = 12.9898;
-    float b = 78.233;
-    float c = 43758.5453;
-    float dt= dot(co.xy, vec2(a, b));
-    float sn= mod(dt, 3.14);
-    return fract(sin(sn) * c);
-}
 
 void main(void)
 {
@@ -619,6 +610,7 @@ class FrostedGlass(FloatLayout):
         w_parent = self.parent
         w_parent_list = []
 
+        # avoid issue with ModalView
         while True:
             w_parent_list.append(w_parent)
             if (
@@ -631,42 +623,46 @@ class FrostedGlass(FloatLayout):
             else:
                 break
 
-        children_list = widget.children
-        children_list_temp = []
-        while children_list:
-            for w in children_list:
-                if isinstance(w, ScrollView):
-                    w.bind(
-                        size=self.trigger_update_effect,
-                        pos=self.trigger_update_effect,
-                        scroll_x=self.trigger_update_effect,
-                        scroll_y=self.trigger_update_effect
-                    )
-                elif isinstance(w, Screen):
-                    w.bind(
-                        on_enter=lambda dt: Clock.schedule_once(
-                            self.refresh_effect, 0
-                        )
-                    )
-                elif isinstance(w, Image):
-                    w.bind(
-                        source=lambda instance, _: instance._coreimage.bind(
-                            on_texture=lambda instance:
-                            self.trigger_update_effect(instance, None)
-                        )
-                    )
-
-                else:
-                    w.bind(
-                        size=self.trigger_update_effect,
-                        pos=self.trigger_update_effect
-                    )
-
+        widgets_list = [widget]
+        children_widgets = [widget]
+        while children_widgets:
+            parent_widgets = children_widgets
+            children_widgets = []
+            for w in parent_widgets:
                 if w.children:
-                    for wi in w.children:
-                        children_list_temp.append(wi)
-            children_list = children_list_temp
-            children_list_temp = []
+                    widgets_list.extend(w.children)
+                    children_widgets.extend(w.children)
+
+        properties_to_bind = (
+            "pos", "size", "scroll_x", "scroll_y", "on_open", "on_enter",
+            "source"
+        )
+
+        for widget in widgets_list:
+            for property in properties_to_bind:
+                try:
+                    if property == "source":
+                        if isinstance(widget, Image):
+                            widget.bind(
+                                source=lambda instance, _: 
+                                    instance._coreimage.bind(
+                                        on_texture=lambda instance:
+                                        self.trigger_update_effect("image")
+                                    )
+                            )
+                        if isinstance(widget, Video):
+                            widget.bind(
+                                loaded=lambda instance, _:
+                                    instance._video.bind(
+                                        on_frame=lambda instance:
+                                        self.trigger_update_effect("video")
+                                    )
+                            )
+                    else:
+                        widget.fbind(property, self.trigger_update_effect)
+
+                except Exception:
+                    pass
 
     def bind_parent_properties(self, widget, check_in_motion=False):
         while True:
