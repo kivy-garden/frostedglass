@@ -432,6 +432,9 @@ class FrostedGlass(FloatLayout):
         self.last_value_list = [0, 0]
         self.last_fbo_pos = [None, None]
 
+        self.popup_parent = None
+        self.parent_screen = None
+
         self.update_fbo_effect()
 
     def update_effect(self, *args, type=None):
@@ -442,7 +445,20 @@ class FrostedGlass(FloatLayout):
         self.update_effect(type=type)
 
     def update_glsl(self, *args):
-        pos = self.to_window(*self.pos)
+        x, y = pos = self.to_window(*self.pos)
+        right, top = self.to_window(self.right, self.top)
+        if right < 0 or top < 0 or x > Window.width or y > Window.height:
+            return
+
+        if (
+            self.parent_screen
+            and self.parent_screen.manager.current != self.parent_screen.name
+        ):
+            return
+
+        if self.popup_parent and self.popup_parent not in Window.children:
+            return
+
         fge_canvas = self.frosted_glass_effect.canvas
 
         fge_canvas["position"] = [float(v) for v in pos]
@@ -604,24 +620,28 @@ class FrostedGlass(FloatLayout):
         self.bind_children_properties(self.background)
 
     def on_parent(self, *args):
-        self.bind_parent_properties(self.parent, check_in_motion=True)
+        parents_list = []
+        parent = self.parent
+        while True:
+            parents_list.append(parent)
+            if parent.parent and parent != parent.parent:
+                parent = parent.parent
+            else:
+                break
+        for p in parents_list:
+            if hasattr(p, "on_open"):
+                self.popup_parent = p
+            if isinstance(p, Screen):
+                self.parent_screen = p
+
+        self.bind_parent_properties(
+            parents_list=parents_list,
+            check_in_motion=True
+        )
 
     def bind_children_properties(self, widget):
         w_parent = self.parent
         w_parent_list = []
-
-        # avoid issue with ModalView
-        while True:
-            w_parent_list.append(w_parent)
-            if (
-                hasattr(w_parent, "open")
-                or hasattr(w_parent, "on_open")
-            ):
-                return
-            if w_parent.parent and w_parent != w_parent.parent:
-                w_parent = w_parent.parent
-            else:
-                break
 
         widgets_list = [widget]
         children_widgets = [widget]
@@ -644,7 +664,7 @@ class FrostedGlass(FloatLayout):
                     if property == "source":
                         if isinstance(widget, Image):
                             widget.bind(
-                                source=lambda instance, _: 
+                                source=lambda instance, _:
                                     instance._coreimage.bind(
                                         on_texture=lambda instance:
                                         self.trigger_update_effect("image")
@@ -664,8 +684,18 @@ class FrostedGlass(FloatLayout):
                 except Exception:
                     pass
 
-    def bind_parent_properties(self, widget, check_in_motion=False):
-        while True:
+    def bind_parent_properties(self, widget=None, parents_list=[], check_in_motion=False):
+        if not parents_list:
+            parents_list = []
+            parent = widget
+            while True:
+                parents_list.append(parent)
+                if parent.parent and parent != parent.parent:
+                    parent = parent.parent
+                else:
+                    break
+
+        for widget in parents_list:
             if isinstance(widget, ScrollView):
                 widget.bind(
                     size=partial(
@@ -693,11 +723,6 @@ class FrostedGlass(FloatLayout):
                     widget.bind(pos=self.update_effect)
                 except Exception:
                     pass
-
-            if widget.parent and widget != widget.parent:
-                widget = widget.parent
-            else:
-                break
 
     def trigger_update_effect(self, widget=None, value=None, type=None):
         allow_update_by_timeout = (now() - self.last_update_time) >= 0.016
