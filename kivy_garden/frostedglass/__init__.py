@@ -94,25 +94,25 @@ uniform sampler2D texture0;
 
 vec4 effect(vec4 color, sampler2D texture, vec2 tex_coords, vec2 coords)
 {{
-  float mean_res = float({});
-  float dt = (({} / 2.0) * 1.0 / mean_res);
-  vec4 sum = vec4(0.0);
+    float mean_res = float({});
+    float dt = (({} / 2.0) * 1.0 / mean_res);
+    vec4 sum = vec4(0.0);
 
-  sum += texture2D(texture, vec2(tex_coords.x, tex_coords.y - 3.0*dt)) * 0.077;
-  sum += texture2D(texture, vec2(tex_coords.x, tex_coords.y - 2.5*dt)) * 0.077;
-  sum += texture2D(texture, vec2(tex_coords.x, tex_coords.y - 2.0*dt)) * 0.077;
-  sum += texture2D(texture, vec2(tex_coords.x, tex_coords.y - 1.5*dt)) * 0.077;
-  sum += texture2D(texture, vec2(tex_coords.x, tex_coords.y - 1.0*dt)) * 0.077;
-  sum += texture2D(texture, vec2(tex_coords.x, tex_coords.y - 0.5*dt)) * 0.077;
-  sum += texture2D(texture, vec2(tex_coords.x, tex_coords.y)) * 0.077;
-  sum += texture2D(texture, vec2(tex_coords.x, tex_coords.y + 0.5*dt)) * 0.077;
-  sum += texture2D(texture, vec2(tex_coords.x, tex_coords.y + 1.0*dt)) * 0.077;
-  sum += texture2D(texture, vec2(tex_coords.x, tex_coords.y + 1.5*dt)) * 0.077;
-  sum += texture2D(texture, vec2(tex_coords.x, tex_coords.y + 2.0*dt)) * 0.077;
-  sum += texture2D(texture, vec2(tex_coords.x, tex_coords.y + 2.5*dt)) * 0.077;
-  sum += texture2D(texture, vec2(tex_coords.x, tex_coords.y + 3.0*dt)) * 0.077;
+    sum += texture2D(texture, vec2(tex_coords.x, tex_coords.y+3.0*dt))*0.077;
+    sum += texture2D(texture, vec2(tex_coords.x, tex_coords.y+2.5*dt))*0.077;
+    sum += texture2D(texture, vec2(tex_coords.x, tex_coords.y+2.0*dt))*0.077;
+    sum += texture2D(texture, vec2(tex_coords.x, tex_coords.y+1.5*dt))*0.077;
+    sum += texture2D(texture, vec2(tex_coords.x, tex_coords.y+1.0*dt))*0.077;
+    sum += texture2D(texture, vec2(tex_coords.x, tex_coords.y+0.5*dt))*0.077;
+    sum += texture2D(texture, vec2(tex_coords.x, tex_coords.y))*0.077;
+    sum += texture2D(texture, vec2(tex_coords.x, tex_coords.y-0.5*dt))*0.077;
+    sum += texture2D(texture, vec2(tex_coords.x, tex_coords.y-1.0*dt))*0.077;
+    sum += texture2D(texture, vec2(tex_coords.x, tex_coords.y-1.5*dt))*0.077;
+    sum += texture2D(texture, vec2(tex_coords.x, tex_coords.y-2.0*dt))*0.077;
+    sum += texture2D(texture, vec2(tex_coords.x, tex_coords.y-2.5*dt))*0.077;
+    sum += texture2D(texture, vec2(tex_coords.x, tex_coords.y-3.0*dt))*0.077;
 
-  return frag_color * vec4(sum.rgba);
+    return frag_color * vec4(sum.rgba);
 }}
 """
 
@@ -132,26 +132,25 @@ uniform sampler2D texture0;
 
 vec4 effect(vec4 color, sampler2D texture, vec2 tex_coords, vec2 coords)
 {{
-  float mean_res = float({});
-  float dt = ({} / 2.0) * 1.0 / mean_res;
-  vec4 sum = vec4(0.0);
+    float mean_res = float({});
+    float dt = ({} / 2.0) * 1.0 / mean_res;
+    vec4 sum = vec4(0.0);
 
+    sum += texture2D(texture, vec2(tex_coords.x+3.0*dt, tex_coords.y))*0.077;
+    sum += texture2D(texture, vec2(tex_coords.x+2.5*dt, tex_coords.y))*0.077;
+    sum += texture2D(texture, vec2(tex_coords.x+2.0*dt, tex_coords.y))*0.077;
+    sum += texture2D(texture, vec2(tex_coords.x+1.5*dt, tex_coords.y))*0.077;
+    sum += texture2D(texture, vec2(tex_coords.x+1.0*dt, tex_coords.y))*0.077;
+    sum += texture2D(texture, vec2(tex_coords.x+0.5*dt, tex_coords.y))*0.077;
+    sum += texture2D(texture, vec2(tex_coords.x, tex_coords.y))*0.077;
+    sum += texture2D(texture, vec2(tex_coords.x-0.5*dt, tex_coords.y))*0.077;
+    sum += texture2D(texture, vec2(tex_coords.x-1.0*dt, tex_coords.y))*0.077;
+    sum += texture2D(texture, vec2(tex_coords.x-1.5*dt, tex_coords.y))*0.077;
+    sum += texture2D(texture, vec2(tex_coords.x-2.0*dt, tex_coords.y))*0.077;
+    sum += texture2D(texture, vec2(tex_coords.x-2.5*dt, tex_coords.y))*0.077;
+    sum += texture2D(texture, vec2(tex_coords.x-3.0*dt, tex_coords.y))*0.077;
 
-  sum += texture2D(texture, vec2(tex_coords.x - 3.0*dt, tex_coords.y)) * 0.077;
-  sum += texture2D(texture, vec2(tex_coords.x - 2.5*dt, tex_coords.y)) * 0.077;
-  sum += texture2D(texture, vec2(tex_coords.x - 2.0*dt, tex_coords.y)) * 0.077;
-  sum += texture2D(texture, vec2(tex_coords.x - 1.5*dt, tex_coords.y)) * 0.077;
-  sum += texture2D(texture, vec2(tex_coords.x - 1.0*dt, tex_coords.y)) * 0.077;
-  sum += texture2D(texture, vec2(tex_coords.x - 0.5*dt, tex_coords.y)) * 0.077;
-  sum += texture2D(texture, vec2(tex_coords.x, tex_coords.y)) * 0.077;
-  sum += texture2D(texture, vec2(tex_coords.x + 0.5*dt, tex_coords.y)) * 0.077;
-  sum += texture2D(texture, vec2(tex_coords.x + 1.0*dt, tex_coords.y)) * 0.077;
-  sum += texture2D(texture, vec2(tex_coords.x + 1.5*dt, tex_coords.y)) * 0.077;
-  sum += texture2D(texture, vec2(tex_coords.x + 2.0*dt, tex_coords.y)) * 0.077;
-  sum += texture2D(texture, vec2(tex_coords.x + 2.5*dt, tex_coords.y)) * 0.077;
-  sum += texture2D(texture, vec2(tex_coords.x + 3.0*dt, tex_coords.y)) * 0.077;
-
-  return  frag_color * vec4(sum.rgba);
+    return  frag_color * vec4(sum.rgba);
 }}
 """
 
@@ -183,7 +182,6 @@ uniform sampler2D texture0;
 vec4 effect(vec4 color, sampler2D texture, vec2 tex_coords, vec2 coords)
 {{
     vec4 sum = vec4(0.0);
-
     float a = 12.9898;
     float b = 78.233;
     float c = 43758.5453;
@@ -258,12 +256,11 @@ class VerticalBlur(FloatLayout):
             fbo=self.set_fbo_shader,
             blur_size=self.update_glsl,
         )
-        self.glsl = horizontal_blur_shader.format(
+        self.glsl = vertical_blur_shader.format(
             MEAN_RES, float(self.blur_size)
         )
 
-        with self.canvas:
-            self.rect = Rectangle()
+       
 
     def set_fbo_shader(self, *args):
         if self.fbo is None:
@@ -271,7 +268,7 @@ class VerticalBlur(FloatLayout):
         self.fbo.shader.fs = self.glsl + shader_footer_effect
 
     def update_glsl(self, *args):
-        self.glsl = horizontal_blur_shader.format(
+        self.glsl = vertical_blur_shader.format(
             MEAN_RES, float(self.blur_size)
         )
 
@@ -288,9 +285,11 @@ class HorizontalBlur(FloatLayout):
             fbo=self.set_fbo_shader,
             blur_size=self.update_glsl,
         )
-        self.glsl = vertical_blur_shader.format(
+        self.glsl = horizontal_blur_shader.format(
             MEAN_RES, float(self.blur_size)
         )
+        with self.canvas:
+            self.rect = Rectangle()
 
     def set_fbo_shader(self, *args):
         if self.fbo is None:
@@ -298,7 +297,7 @@ class HorizontalBlur(FloatLayout):
         self.fbo.shader.fs = self.glsl + shader_footer_effect
 
     def update_glsl(self, *args):
-        self.glsl = vertical_blur_shader.format(
+        self.glsl = horizontal_blur_shader.format(
             MEAN_RES, float(self.blur_size)
         )
 
@@ -428,12 +427,14 @@ class FrostedGlass(FloatLayout):
 
         self.last_value = 0
         self.last_update_time = 0
-        self.last_blur_size_value = 0
         self.last_value_list = [0, 0]
+        self.last_blur_size_value = None
         self.last_fbo_pos = [None, None]
-
         self.popup_parent = None
         self.parent_screen = None
+        self.parents_list = []
+        self.background_children_list = []
+        self.background_parents_list = []
 
         self.update_fbo_effect()
 
@@ -476,7 +477,7 @@ class FrostedGlass(FloatLayout):
             ):
                 if None in self.last_fbo_pos:
                     Clock.schedule_once(lambda *args: self.update_fbo_effect(
-                        True, self.to_window(*self.pos, initial=False)), 0
+                        True, self.to_window(*self.pos, initial=False)), -1
                     )
                 else:
                     Clock.schedule_once(lambda *args: self.update_fbo_effect(
@@ -510,17 +511,60 @@ class FrostedGlass(FloatLayout):
     def _get_final_texture(self, pos):
         self.fbo_1.add(self.background.canvas)
         self.fbo_1.draw()
-        self.vertical_blur.rect.size = self.size
-        self.vertical_blur.rect.pos = pos
+        self.horizontal_blur.rect.size = self.size
+        self.horizontal_blur.rect.pos = pos
         self.fbo_1.remove(self.background.canvas)
-        self.vertical_blur.rect.texture = self.fbo_1.texture
+        self.horizontal_blur.rect.texture = self.fbo_1.texture
 
-        self.fbo_2.add(self.vertical_blur.canvas)
+        self.fbo_2.add(self.horizontal_blur.canvas)
         self.fbo_2.draw()
         texture = self.fbo_2.texture
-        self.fbo_2.remove(self.vertical_blur.canvas)
+        self.fbo_2.remove(self.horizontal_blur.canvas)
 
         return texture
+
+    def update_noise_texture(self):
+        fbo_size = max(1, self.width/dp(1)), max(1, self.height/dp(1))
+        self.fbo_noise = Fbo(size=fbo_size)
+        self.noise.fbo = self.fbo_noise
+        self.noise.rect.size = self.size
+        self.noise.fbo.add(self.noise.canvas)
+        self.noise.fbo.draw()
+        self.noise.fbo.remove(self.noise.canvas)
+        self.bt_2.texture = self.fbo_noise.texture
+        self.frosted_glass_effect.canvas["texture2"] = 2
+
+    def update_fbo_effect(self, improve_performance=False, pos=None):
+        if improve_performance:
+            fbo_size = (min(self.width, 150), min(self.height, 150))
+        else:
+            fbo_size = (min(self.width, 250), min(self.height, 250))
+
+        size = max(1, self.width), max(1, self.height)
+        fbo_size = max(1, fbo_size[0]), max(1, fbo_size[1])
+
+        self.fbo_1 = Fbo(size=fbo_size)
+        self.fbo_2 = Fbo(size=fbo_size)
+
+        pos = pos or self.to_window(*self.pos)
+        x = 1/(size[0]/fbo_size[0])
+        y = 1/(size[1]/fbo_size[1])
+        z = 1
+
+        with self.fbo_1:
+            ClearColor(0, 0, 0, 0)
+            ClearBuffers()
+            Scale(x, y, z)
+            self.fbo_1_translate = Translate(-pos[0], -pos[1])
+
+        with self.fbo_2:
+            ClearColor(0, 0, 0, 0)
+            ClearBuffers()
+            Scale(x, y, z)
+            self.fbo_2_translate = Translate(-pos[0], -pos[1])
+
+        self.horizontal_blur.fbo = self.fbo_1
+        self.vertical_blur.fbo = self.fbo_2
 
     def on_touch_down(self, touch):
         if self.collide_point(*touch.pos):
@@ -533,17 +577,6 @@ class FrostedGlass(FloatLayout):
         self.update_fbo_effect()
         self.update_effect()
         self.update_noise_texture()
-
-    def update_noise_texture(self):
-        fbo_size = max(1, self.width/dp(1)), max(1, self.height/dp(1))
-        self.fbo_noise = Fbo(size=fbo_size)
-        self.noise.fbo = self.fbo_noise
-        self.noise.rect.size = self.size
-        self.noise.fbo.add(self.noise.canvas)
-        self.noise.fbo.draw()
-        self.noise.fbo.remove(self.noise.canvas)
-        self.bt_2.texture = self.fbo_noise.texture
-        self.frosted_glass_effect.canvas["texture2"] = 2
 
     def on_pos(self, *args):
         self.update_canvas()
@@ -583,66 +616,34 @@ class FrostedGlass(FloatLayout):
             self.update_effect()
             self.last_blur_size_value = int(blur_size)
 
-    def update_fbo_effect(self, improve_performance=False, pos=None):
-        if improve_performance:
-            fbo_size = (min(self.width, 150), min(self.height, 150))
-        else:
-            fbo_size = (min(self.width, 250), min(self.height, 250))
-
-        size = max(1, self.width), max(1, self.height)
-        fbo_size = max(1, fbo_size[0]), max(1, fbo_size[1])
-
-        self.fbo_1 = Fbo(size=fbo_size)
-        self.fbo_2 = Fbo(size=fbo_size)
-
-        pos = pos or self.to_window(*self.pos)
-        x = 1/(size[0]/fbo_size[0])
-        y = 1/(size[1]/fbo_size[1])
-        z = 1
-
-        with self.fbo_1:
-            ClearColor(0, 0, 0, 0)
-            ClearBuffers()
-            Scale(x, y, z)
-            self.fbo_1_translate = Translate(-pos[0], -pos[1])
-
-        with self.fbo_2:
-            ClearColor(0, 0, 0, 0)
-            ClearBuffers()
-            Scale(x, y, z)
-            self.fbo_2_translate = Translate(-pos[0], -pos[1])
-
-        self.vertical_blur.fbo = self.fbo_1
-        self.horizontal_blur.fbo = self.fbo_2
 
     def on_background(self, *args):
-        self.bind_parent_properties(self.background)
-        self.bind_children_properties(self.background)
+        self.background_parents_list = self._get_all_parents(self.background)
+        self.background_children_list = self._get_all_children(self.background)
+        self.bind_parent_properties(self.background_parents_list)
+        self.bind_children_properties(self.background_children_list)
 
     def on_parent(self, *args):
-        parents_list = []
-        parent = self.parent
-        while True:
-            parents_list.append(parent)
-            if parent.parent and parent != parent.parent:
-                parent = parent.parent
-            else:
-                break
-        for p in parents_list:
+        self.parents_list = self._get_all_parents(self.parent)
+        for p in self.parents_list:
             if hasattr(p, "on_open"):
                 self.popup_parent = p
             if isinstance(p, Screen):
                 self.parent_screen = p
+        self.bind_parent_properties(self.parents_list, check_in_motion=True)
 
-        self.bind_parent_properties(
-            parents_list=parents_list,
-            check_in_motion=True
-        )
+    def _get_all_parents(self, widget):
+        widgets_list = []
+        parent = self.parent
+        while True:
+            widgets_list.append(parent)
+            if parent.parent and parent != parent.parent:
+                parent = parent.parent
+            else:
+                break
+        return widgets_list
 
-    def bind_children_properties(self, widget):
-        w_parent = self.parent
-        w_parent_list = []
-
+    def _get_all_children(self, widget):
         widgets_list = [widget]
         children_widgets = [widget]
         while children_widgets:
@@ -652,13 +653,14 @@ class FrostedGlass(FloatLayout):
                 if w.children:
                     widgets_list.extend(w.children)
                     children_widgets.extend(w.children)
+        return widgets_list
 
+    def bind_children_properties(self, children_list):
         properties_to_bind = (
             "pos", "size", "scroll_x", "scroll_y", "on_open", "on_enter",
             "source"
         )
-
-        for widget in widgets_list:
+        for widget in children_list:
             for property in properties_to_bind:
                 try:
                     if property == "source":
@@ -680,21 +682,10 @@ class FrostedGlass(FloatLayout):
                             )
                     else:
                         widget.fbind(property, self.trigger_update_effect)
-
                 except Exception:
                     pass
 
-    def bind_parent_properties(self, widget=None, parents_list=[], check_in_motion=False):
-        if not parents_list:
-            parents_list = []
-            parent = widget
-            while True:
-                parents_list.append(parent)
-                if parent.parent and parent != parent.parent:
-                    parent = parent.parent
-                else:
-                    break
-
+    def bind_parent_properties(self, parents_list, check_in_motion=False):
         for widget in parents_list:
             if isinstance(widget, ScrollView):
                 widget.bind(
