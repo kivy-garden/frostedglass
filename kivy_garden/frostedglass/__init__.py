@@ -260,8 +260,6 @@ class VerticalBlur(FloatLayout):
             MEAN_RES, float(self.blur_size)
         )
 
-       
-
     def set_fbo_shader(self, *args):
         if self.fbo is None:
             return
@@ -615,7 +613,6 @@ class FrostedGlass(FloatLayout):
             self.update_fbo_effect()
             self.update_effect()
             self.last_blur_size_value = int(blur_size)
-
 
     def on_background(self, *args):
         self.background_parents_list = self._get_all_parents(self.background)
