@@ -434,32 +434,47 @@ class FrostedGlass(FloatLayout):
         self.background_children_list = []
         self.background_parents_list = []
 
-        self.update_fbo_effect()
+        self.is_movable = False
+        self.adapted_fbo_size = False
 
-    def update_effect(self, *args, type=None):
-        Clock.schedule_once(lambda _: self.update_glsl(type), 0)
+        self.refresh_effect()
+
+    def update_effect(self, *args):
+        Clock.schedule_once(lambda _: self.update_glsl(), 0)
 
     def refresh_effect(self, *args):
-        self.update_fbo_effect()
-        self.update_effect(type=type)
+        pos = self.to_window(*self.pos)
+        Clock.schedule_once(lambda _: self.update_fbo_effect(pos), 0)
+        self.update_effect()
 
-    def update_glsl(self, *args):
-        x, y = pos = self.to_window(*self.pos)
+    def allow_update(self, pos):
+        x, y = pos
         right, top = self.to_window(self.right, self.top)
-        if right < 0 or top < 0 or x > Window.width or y > Window.height:
-            return
 
-        if (
+        pos_rules = (
+            right < 0
+            or top < 0
+            or x > Window.width
+            or y > Window.height
+        )
+        screen_rules = (
             self.parent_screen
             and self.parent_screen.manager.current != self.parent_screen.name
-        ):
-            return
+        )
+        popup_rules = (
+            self.popup_parent
+            and not self.popup_parent.parent
+        )
+        if pos_rules or screen_rules or popup_rules:
+            return False
+        return True
 
-        if self.popup_parent and self.popup_parent not in Window.children:
+    def update_glsl(self):
+        pos = self.to_window(*self.pos)
+        if not self.allow_update(pos):
             return
 
         fge_canvas = self.frosted_glass_effect.canvas
-
         fge_canvas["position"] = [float(v) for v in pos]
         fge_canvas["resolution"] = [float(v) for v in self.size]
         fge_canvas["luminosity"] = float(self.luminosity)
@@ -467,40 +482,13 @@ class FrostedGlass(FloatLayout):
         fge_canvas["noise_opacity"] = float(self.noise_opacity)
         fge_canvas["color_overlay"] = [float(v) for v in self.overlay_color]
 
-        performance_fbo_size = (min(self.width, 150), min(self.height, 150))
-        if "in_motion" in args:
-            if (
-                self.fbo_1.size != performance_fbo_size
-                or self.fbo_2.size != performance_fbo_size
-            ):
-                if None in self.last_fbo_pos:
-                    Clock.schedule_once(lambda *args: self.update_fbo_effect(
-                        True, self.to_window(*self.pos, initial=False)), -1
-                    )
-                else:
-                    Clock.schedule_once(lambda *args: self.update_fbo_effect(
-                        True, pos), 0
-                    )
+        if self.is_movable:
+            if not self.adapted_fbo_size:
+                self.refresh_effect()
+                self.adapted_fbo_size = True
 
-            if None in self.last_fbo_pos:
-                self.last_fbo_pos = pos
-
-            _pos = [
-                -(pos[0] - self.last_fbo_pos[0]),
-                -(pos[1] - self.last_fbo_pos[1])
-            ]
-            self.fbo_1_translate.x += _pos[0]
-            self.fbo_2_translate.x += _pos[0]
-            self.fbo_1_translate.y += _pos[1]
-            self.fbo_2_translate.y += _pos[1]
-
-        elif (
-            self.fbo_1.size == performance_fbo_size
-            or self.fbo_2.size == performance_fbo_size
-        ):
-            self.last_fbo_pos = [None, None]
-            Clock.schedule_once(lambda *args: self.update_fbo_effect(), 0)
-        self.last_fbo_pos = pos
+            self.fbo_1_translate.x = self.fbo_2_translate.x = - pos[0]
+            self.fbo_1_translate.y = self.fbo_2_translate.y = - pos[1]
 
         self.bt_1.texture = self._get_final_texture(pos)
         fge_canvas["texture1"] = 1
@@ -532,8 +520,8 @@ class FrostedGlass(FloatLayout):
         self.bt_2.texture = self.fbo_noise.texture
         self.frosted_glass_effect.canvas["texture2"] = 2
 
-    def update_fbo_effect(self, improve_performance=False, pos=None):
-        if improve_performance:
+    def update_fbo_effect(self, pos=None, *args):
+        if self.is_movable:
             fbo_size = (min(self.width, 150), min(self.height, 150))
         else:
             fbo_size = (min(self.width, 250), min(self.height, 250))
@@ -544,7 +532,7 @@ class FrostedGlass(FloatLayout):
         self.fbo_1 = Fbo(size=fbo_size)
         self.fbo_2 = Fbo(size=fbo_size)
 
-        pos = pos or self.to_window(*self.pos)
+        pos = pos if pos else self.to_window(*self.pos)
         x = 1/(size[0]/fbo_size[0])
         y = 1/(size[1]/fbo_size[1])
         z = 1
@@ -572,14 +560,12 @@ class FrostedGlass(FloatLayout):
 
     def on_size(self, instance, size):
         self.update_canvas()
-        self.update_fbo_effect()
-        self.update_effect()
+        self.refresh_effect()
         self.update_noise_texture()
 
     def on_pos(self, *args):
         self.update_canvas()
-        self.update_fbo_effect()
-        self.update_effect()
+        self.refresh_effect()
 
     def on_border_radius(self, *args):
         self.update_canvas()
@@ -610,8 +596,7 @@ class FrostedGlass(FloatLayout):
         if blur_size != self.last_blur_size_value:
             self.vertical_blur.blur_size = dp(blur_size)
             self.horizontal_blur.blur_size = dp(blur_size)
-            self.update_fbo_effect()
-            self.update_effect()
+            self.refresh_effect()
             self.last_blur_size_value = int(blur_size)
 
     def on_background(self, *args):
@@ -627,7 +612,9 @@ class FrostedGlass(FloatLayout):
                 self.popup_parent = p
             if isinstance(p, Screen):
                 self.parent_screen = p
-        self.bind_parent_properties(self.parents_list, check_in_motion=True)
+            if isinstance(p, ScrollView):
+                self.is_movable = True
+        self.bind_parent_properties(self.parents_list)
 
     def _get_all_parents(self, widget):
         widgets_list = []
@@ -682,46 +669,34 @@ class FrostedGlass(FloatLayout):
                 except Exception:
                     pass
 
-    def bind_parent_properties(self, parents_list, check_in_motion=False):
+    def bind_parent_properties(self, parents_list):
         for widget in parents_list:
             if isinstance(widget, ScrollView):
                 widget.bind(
-                    size=partial(
-                        self.trigger_update_effect,
-                        type="in_motion" if check_in_motion else None
-                    ),
-                    pos=partial(
-                        self.trigger_update_effect,
-                        type="in_motion" if check_in_motion else None
-                    ),
-                    scroll_x=partial(
-                        self.trigger_update_effect,
-                        type="in_motion" if check_in_motion else None
-                    ),
-                    scroll_y=partial(
-                        self.trigger_update_effect,
-                        type="in_motion" if check_in_motion else None
-                    )
+                    size=partial(self.trigger_update_effect),
+                    pos=partial(self.trigger_update_effect),
+                    scroll_x=partial(self.trigger_update_effect),
+                    scroll_y=partial(self.trigger_update_effect)
                 )
             elif isinstance(widget, Screen):
                 widget.bind(on_enter=self.refresh_effect)
             else:
-                widget.bind(size=self.update_effect)
+                widget.bind(size=self.trigger_update_effect)
                 try:
-                    widget.bind(pos=self.update_effect)
+                    widget.bind(pos=self.trigger_update_effect)
                 except Exception:
                     pass
 
-    def trigger_update_effect(self, widget=None, value=None, type=None):
+    def trigger_update_effect(self, widget=None, value=None):
         allow_update_by_timeout = (now() - self.last_update_time) >= 0.016
         if value is None:
-            self.update_effect(type=type)
+            self.update_effect()
 
         if (
             (isinstance(value, int) or isinstance(value, float))
             and allow_update_by_timeout and round(value, 3) != self.last_value
         ):
-            self.update_effect(type=type)
+            self.update_effect()
             self.last_value = round(value, 3)
             self.last_update_time = now()
 
@@ -732,6 +707,6 @@ class FrostedGlass(FloatLayout):
                 or round(value[1], 2) != self.last_value_list[1]
             )
         ):
-            self.update_effect(type=type)
+            self.update_effect()
             self.last_value_list = round(value[0], 2), round(value[1], 2)
             self.last_update_time = now()
