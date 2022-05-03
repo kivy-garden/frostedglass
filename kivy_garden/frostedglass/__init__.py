@@ -451,21 +451,21 @@ class FrostedGlass(FloatLayout):
         x, y = pos
         right, top = self.to_window(self.right, self.top)
 
-        pos_rules = (
+        out_of_the_window = (
             right < 0
             or top < 0
             or x > Window.width
             or y > Window.height
         )
-        screen_rules = (
+        not_current_screen = (
             self.parent_screen
             and self.parent_screen.manager.current != self.parent_screen.name
         )
-        popup_rules = (
+        popup_closed = (
             self.popup_parent
             and not self.popup_parent.parent
         )
-        if pos_rules or screen_rules or popup_rules:
+        if out_of_the_window or not_current_screen or popup_closed:
             return False
         return True
 
