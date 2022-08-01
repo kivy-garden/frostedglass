@@ -48,35 +48,7 @@ from kivy.uix.screenmanager import Screen
 from kivy.uix.image import Image
 from kivy.uix.video import Video
 
-
 MEAN_RES = (Window.width + Window.height)/2
-
-
-vertex_shader = ("""
-#ifdef GL_ES
-    precision highp float;
-#endif
-
-/* Outputs to the fragment shader */
-varying vec4 frag_color;
-varying vec2 tex_coord0;
-
-/* vertex attributes */
-attribute vec2     vPosition;
-attribute vec2     vTexCoords0;
-
-/* uniform variables */
-uniform mat4       modelview_mat;
-uniform mat4       projection_mat;
-uniform vec4       color;
-
-
-void main (void) {
-  frag_color = color;
-  tex_coord0 = vTexCoords0;
-  gl_Position = projection_mat * modelview_mat * vec4(vPosition.xy, 0.0, 1.0);
-}
-""")
 
 
 vertical_blur_shader = """
@@ -300,22 +272,12 @@ class HorizontalBlur(FloatLayout):
         )
 
 
-class Noise(FloatLayout):
-
-    glsl = StringProperty('')
-    fbo = ObjectProperty(None, allownone=True)
+class Noise(Fbo):
 
     def __init__(self, *args, **kwargs):
         super(Noise, self).__init__(*args, **kwargs)
-        self.bind(fbo=self.set_fbo_shader)
-        with self.canvas:
-            self.rect = Rectangle()
-        self.glsl = noise_shader
-
-    def set_fbo_shader(self, *args):
-        if self.fbo is None:
-            return
-        self.fbo.shader.fs = self.glsl + shader_footer_effect
+        self.rect = Rectangle()
+        self.shader.fs = noise_shader + shader_footer_effect
 
 
 class FrostedGlass(FloatLayout):
@@ -390,13 +352,11 @@ class FrostedGlass(FloatLayout):
             border_radius=self.update_effect
         )
 
-        self.frosted_glass_effect = FloatLayout()
-        self.frosted_glass_effect.canvas = RenderContext(
+        self.frosted_glass_effect = RenderContext(
             use_parent_projection=True,
             use_parent_modelview=True,
-            use_parent_frag_modelview=True
         )
-        with self.frosted_glass_effect.canvas:
+        with self.frosted_glass_effect:
             self.bt_1 = BindTexture(index=1)
             self.bt_2 = BindTexture(index=2)
             self.fbo_rect = RoundedRectangle(
@@ -404,24 +364,37 @@ class FrostedGlass(FloatLayout):
                 pos=self.pos,
                 radius=self.border_radius,
             )
-        self.frosted_glass_effect.canvas.shader.fs = final_shader_effect
-        self.frosted_glass_effect.canvas.shader.vs = vertex_shader
+        self.frosted_glass_effect.shader.fs = final_shader_effect
 
-        self.canvas.add(self.frosted_glass_effect.canvas)
+        self.canvas.add(self.frosted_glass_effect)
 
         with self.canvas:
             self._outline_color = Color(rgba=self.outline_color)
             self.outline = SmoothLine(
                 width=1,
-                overdraw_width=dp(1.5),
+                overdraw_width=2,
                 rounded_rectangle=(
-                    self.x, self.y, self.width, self.height, 1, 1, 1, 1
+                    self.x, self.y, self.width, self.height, 1, 1, 1, 1, 45
                 )
             )
 
         self.horizontal_blur = HorizontalBlur(blur_size=self.blur_size)
         self.vertical_blur = VerticalBlur(blur_size=self.blur_size)
-        self.noise = Noise()
+        self.noise = Noise(size=(100, 100))
+        self.fbo_1 = Fbo(size=(100, 100))
+        self.fbo_2 = Fbo(size=(100, 100))
+
+        with self.fbo_1:
+            ClearColor(0, 0, 0, 0)
+            ClearBuffers()
+            self.fbo_1_scale = Scale(1, 1, 1)
+            self.fbo_1_translate = Translate(0, 0)
+
+        with self.fbo_2:
+            ClearColor(0, 0, 0, 0)
+            ClearBuffers()
+            self.fbo_2_scale = Scale(1, 1, 1)
+            self.fbo_2_translate = Translate(0, 0)
 
         self.last_value = 0
         self.last_update_time = 0
@@ -474,13 +447,13 @@ class FrostedGlass(FloatLayout):
         if not self.allow_update(pos):
             return
 
-        fge_canvas = self.frosted_glass_effect.canvas
-        fge_canvas["position"] = [float(v) for v in pos]
-        fge_canvas["resolution"] = [float(v) for v in self.size]
-        fge_canvas["luminosity"] = float(self.luminosity)
-        fge_canvas["saturation"] = float(self.saturation)
-        fge_canvas["noise_opacity"] = float(self.noise_opacity)
-        fge_canvas["color_overlay"] = [float(v) for v in self.overlay_color]
+        effect = self.frosted_glass_effect
+        effect["position"] = [float(v) for v in pos]
+        effect["resolution"] = [float(v) for v in self.size]
+        effect["luminosity"] = float(self.luminosity)
+        effect["saturation"] = float(self.saturation)
+        effect["noise_opacity"] = float(self.noise_opacity)
+        effect["color_overlay"] = [float(v) for v in self.overlay_color]
 
         if self.is_movable:
             if not self.adapted_fbo_size:
@@ -488,11 +461,13 @@ class FrostedGlass(FloatLayout):
                 self.adapted_fbo_size = True
 
             self.fbo_1_translate.x = self.fbo_2_translate.x = - pos[0]
-            self.fbo_1_translate.y = self.fbo_2_translate.y = - pos[1]
+            self.fbo_1_translate.y = self.fbo_2_translate.y = (
+                - pos[1] - self.size[1]
+            )
 
         self.bt_1.texture = self._get_final_texture(pos)
-        fge_canvas["texture1"] = 1
-        fge_canvas.ask_update()
+        effect["texture1"] = 1
+        effect.ask_update()
 
     def _get_final_texture(self, pos):
         self.fbo_1.add(self.background.canvas)
@@ -511,14 +486,13 @@ class FrostedGlass(FloatLayout):
 
     def update_noise_texture(self):
         fbo_size = max(1, self.width/dp(1)), max(1, self.height/dp(1))
-        self.fbo_noise = Fbo(size=fbo_size)
-        self.noise.fbo = self.fbo_noise
+        self.noise.size = fbo_size
         self.noise.rect.size = self.size
-        self.noise.fbo.add(self.noise.canvas)
-        self.noise.fbo.draw()
-        self.noise.fbo.remove(self.noise.canvas)
-        self.bt_2.texture = self.fbo_noise.texture
-        self.frosted_glass_effect.canvas["texture2"] = 2
+        self.noise.add(self.noise.rect)
+        self.noise.draw()
+        self.noise.remove(self.noise.rect)
+        self.bt_2.texture = self.noise.texture
+        self.frosted_glass_effect["texture2"] = 2
 
     def update_fbo_effect(self, pos=None, *args):
         if self.is_movable:
@@ -529,25 +503,17 @@ class FrostedGlass(FloatLayout):
         size = max(1, self.width), max(1, self.height)
         fbo_size = max(1, fbo_size[0]), max(1, fbo_size[1])
 
-        self.fbo_1 = Fbo(size=fbo_size)
-        self.fbo_2 = Fbo(size=fbo_size)
+        self.fbo_1.size = fbo_size
+        self.fbo_2.size = fbo_size
 
         pos = pos if pos else self.to_window(*self.pos)
         x = 1/(size[0]/fbo_size[0])
         y = 1/(size[1]/fbo_size[1])
-        z = 1
 
-        with self.fbo_1:
-            ClearColor(0, 0, 0, 0)
-            ClearBuffers()
-            Scale(x, y, z)
-            self.fbo_1_translate = Translate(-pos[0], -pos[1])
-
-        with self.fbo_2:
-            ClearColor(0, 0, 0, 0)
-            ClearBuffers()
-            Scale(x, y, z)
-            self.fbo_2_translate = Translate(-pos[0], -pos[1])
+        self.fbo_1_scale.x = self.fbo_2_scale.x = x
+        self.fbo_1_scale.y = self.fbo_2_scale.y = -y
+        self.fbo_1_translate.x = self.fbo_2_translate.x = -pos[0]
+        self.fbo_1_translate.y = self.fbo_2_translate.y = -pos[1] - size[1]
 
         self.horizontal_blur.fbo = self.fbo_1
         self.vertical_blur.fbo = self.fbo_2
@@ -573,7 +539,7 @@ class FrostedGlass(FloatLayout):
     def update_canvas(self):
         border_radius = list(
             map(
-                lambda x: max(1, min(min(self.width/2, self.height/2), x)),
+                lambda x: max(1, min(min(self.width, self.height) / 2, x)),
                 self.border_radius
             )
         )
@@ -584,11 +550,8 @@ class FrostedGlass(FloatLayout):
         self._outline_color.rgba = self.outline_color
         self.outline.width = self.outline_width
         self.outline.rounded_rectangle = (
-            self.x, self.y, self.width, self.height,
-            border_radius[3],
-            border_radius[2],
-            border_radius[1],
-            border_radius[0],
+            self.x, self.y, self.width, self.height, *reversed(border_radius),
+            45
         )
 
     def on_blur_size(self, instance, blur_size):
@@ -688,7 +651,7 @@ class FrostedGlass(FloatLayout):
                     pass
 
     def trigger_update_effect(self, widget=None, value=None):
-        allow_update_by_timeout = (now() - self.last_update_time) >= 0.016
+        allow_update_by_timeout = (now() - self.last_update_time) >= 0.03333
         if value is None:
             self.update_effect()
 
