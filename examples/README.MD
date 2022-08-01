@@ -1,7 +1,6 @@
 # Guide:
 
-When you run the `main.py` file you will see three common types of FrostedGlass implementations: static, static with a moving background, and moving with a static background.
-In terms of performance, there is no significant difference between the first and second implementations (which have high performance). However, the third implementation may have a slight drop in FPS on some devices, as it needs to update the FBO every time the *FrostedGlass* is moved. *What can be targeted for improvement by contributors!*
+When you run the `main.py` file you will see four common types of FrostedGlass implementations: static, static with a moving background, moving with a static background and inside ModalView.
 
 The main intention is to give a basic idea of how to combine FrostedGlass with the rest of the UI. These are just some of the many possible combinations you can make. *The creativity is yours!*
 
@@ -14,4 +13,4 @@ The contents of this folder are ready to be used on any operating system support
 
 # Examples overview:
 
-https://user-images.githubusercontent.com/73297572/157085704-6fa4c48b-ba9a-4fb3-9ef1-a59088a89622.mp4
+https://user-images.githubusercontent.com/73297572/160003704-88133597-e64e-4545-b314-925084e6c273.mp4

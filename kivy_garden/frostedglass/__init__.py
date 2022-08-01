@@ -2,11 +2,12 @@
 FrostedGlass
 ============
 
-The :class:`FrostedGlass` is a translucent frosted glass effect widget, that
-creates a context with the background behind it.
+FrostedGlass is a widget with translucent frosted glass effect, that creates a
+context with the background behind it.
 
-The effect is drawn on the FrostedGlass canvas, based on the widget passed in
-as the background.
+The effect created is based on the widget passed in as the background. You can
+control the blur size, saturation, luminosity, overlay color, noise opacity,
+border radius and the outline (color and width).
 """
 
 __all__ = ('FrostedGlass', )
@@ -45,41 +46,14 @@ from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.screenmanager import Screen
 from kivy.uix.image import Image
-
+from kivy.uix.video import Video
 
 MEAN_RES = (Window.width + Window.height)/2
 
 
-vertex_shader = ("""
-#ifdef GL_ES
-    precision highp float;
-#endif
-
-/* Outputs to the fragment shader */
-varying vec4 frag_color;
-varying vec2 tex_coord0;
-
-/* vertex attributes */
-attribute vec2     vPosition;
-attribute vec2     vTexCoords0;
-
-/* uniform variables */
-uniform mat4       modelview_mat;
-uniform mat4       projection_mat;
-uniform vec4       color;
-
-
-void main (void) {
-  frag_color = color;
-  tex_coord0 = vTexCoords0;
-  gl_Position = projection_mat * modelview_mat * vec4(vPosition.xy, 0.0, 1.0);
-}
-""")
-
-
 vertical_blur_shader = """
 #ifdef GL_ES
-precision lowp float;
+    precision lowp float;
 #endif
 
 /* Outputs from the vertex shader */
@@ -92,32 +66,32 @@ uniform sampler2D texture0;
 
 vec4 effect(vec4 color, sampler2D texture, vec2 tex_coords, vec2 coords)
 {{
-  float mean_res = float({});
-  float dt = (({} / 2.0) * 1.0 / mean_res);
-  vec4 sum = vec4(0.0);
+    float mean_res = float({});
+    float dt = (({} / 2.0) * 1.0 / mean_res);
+    vec4 sum = vec4(0.0);
 
-  sum += texture2D(texture, vec2(tex_coords.x, tex_coords.y - 3.0*dt)) * 0.077;
-  sum += texture2D(texture, vec2(tex_coords.x, tex_coords.y - 2.5*dt)) * 0.077;
-  sum += texture2D(texture, vec2(tex_coords.x, tex_coords.y - 2.0*dt)) * 0.077;
-  sum += texture2D(texture, vec2(tex_coords.x, tex_coords.y - 1.5*dt)) * 0.077;
-  sum += texture2D(texture, vec2(tex_coords.x, tex_coords.y - 1.0*dt)) * 0.077;
-  sum += texture2D(texture, vec2(tex_coords.x, tex_coords.y - 0.5*dt)) * 0.077;
-  sum += texture2D(texture, vec2(tex_coords.x, tex_coords.y)) * 0.077;
-  sum += texture2D(texture, vec2(tex_coords.x, tex_coords.y + 0.5*dt)) * 0.077;
-  sum += texture2D(texture, vec2(tex_coords.x, tex_coords.y + 1.0*dt)) * 0.077;
-  sum += texture2D(texture, vec2(tex_coords.x, tex_coords.y + 1.5*dt)) * 0.077;
-  sum += texture2D(texture, vec2(tex_coords.x, tex_coords.y + 2.0*dt)) * 0.077;
-  sum += texture2D(texture, vec2(tex_coords.x, tex_coords.y + 2.5*dt)) * 0.077;
-  sum += texture2D(texture, vec2(tex_coords.x, tex_coords.y + 3.0*dt)) * 0.077;
+    sum += texture2D(texture, vec2(tex_coords.x, tex_coords.y+3.0*dt))*0.077;
+    sum += texture2D(texture, vec2(tex_coords.x, tex_coords.y+2.5*dt))*0.077;
+    sum += texture2D(texture, vec2(tex_coords.x, tex_coords.y+2.0*dt))*0.077;
+    sum += texture2D(texture, vec2(tex_coords.x, tex_coords.y+1.5*dt))*0.077;
+    sum += texture2D(texture, vec2(tex_coords.x, tex_coords.y+1.0*dt))*0.077;
+    sum += texture2D(texture, vec2(tex_coords.x, tex_coords.y+0.5*dt))*0.077;
+    sum += texture2D(texture, vec2(tex_coords.x, tex_coords.y))*0.077;
+    sum += texture2D(texture, vec2(tex_coords.x, tex_coords.y-0.5*dt))*0.077;
+    sum += texture2D(texture, vec2(tex_coords.x, tex_coords.y-1.0*dt))*0.077;
+    sum += texture2D(texture, vec2(tex_coords.x, tex_coords.y-1.5*dt))*0.077;
+    sum += texture2D(texture, vec2(tex_coords.x, tex_coords.y-2.0*dt))*0.077;
+    sum += texture2D(texture, vec2(tex_coords.x, tex_coords.y-2.5*dt))*0.077;
+    sum += texture2D(texture, vec2(tex_coords.x, tex_coords.y-3.0*dt))*0.077;
 
-  return frag_color * vec4(sum.rgba);
+    return frag_color * vec4(sum.rgba);
 }}
 """
 
 
 horizontal_blur_shader = """
 #ifdef GL_ES
-precision lowp float;
+    precision lowp float;
 #endif
 
 /* Outputs from the vertex shader */
@@ -130,26 +104,25 @@ uniform sampler2D texture0;
 
 vec4 effect(vec4 color, sampler2D texture, vec2 tex_coords, vec2 coords)
 {{
-  float mean_res = float({});
-  float dt = ({} / 2.0) * 1.0 / mean_res;
-  vec4 sum = vec4(0.0);
+    float mean_res = float({});
+    float dt = ({} / 2.0) * 1.0 / mean_res;
+    vec4 sum = vec4(0.0);
 
+    sum += texture2D(texture, vec2(tex_coords.x+3.0*dt, tex_coords.y))*0.077;
+    sum += texture2D(texture, vec2(tex_coords.x+2.5*dt, tex_coords.y))*0.077;
+    sum += texture2D(texture, vec2(tex_coords.x+2.0*dt, tex_coords.y))*0.077;
+    sum += texture2D(texture, vec2(tex_coords.x+1.5*dt, tex_coords.y))*0.077;
+    sum += texture2D(texture, vec2(tex_coords.x+1.0*dt, tex_coords.y))*0.077;
+    sum += texture2D(texture, vec2(tex_coords.x+0.5*dt, tex_coords.y))*0.077;
+    sum += texture2D(texture, vec2(tex_coords.x, tex_coords.y))*0.077;
+    sum += texture2D(texture, vec2(tex_coords.x-0.5*dt, tex_coords.y))*0.077;
+    sum += texture2D(texture, vec2(tex_coords.x-1.0*dt, tex_coords.y))*0.077;
+    sum += texture2D(texture, vec2(tex_coords.x-1.5*dt, tex_coords.y))*0.077;
+    sum += texture2D(texture, vec2(tex_coords.x-2.0*dt, tex_coords.y))*0.077;
+    sum += texture2D(texture, vec2(tex_coords.x-2.5*dt, tex_coords.y))*0.077;
+    sum += texture2D(texture, vec2(tex_coords.x-3.0*dt, tex_coords.y))*0.077;
 
-  sum += texture2D(texture, vec2(tex_coords.x - 3.0*dt, tex_coords.y)) * 0.077;
-  sum += texture2D(texture, vec2(tex_coords.x - 2.5*dt, tex_coords.y)) * 0.077;
-  sum += texture2D(texture, vec2(tex_coords.x - 2.0*dt, tex_coords.y)) * 0.077;
-  sum += texture2D(texture, vec2(tex_coords.x - 1.5*dt, tex_coords.y)) * 0.077;
-  sum += texture2D(texture, vec2(tex_coords.x - 1.0*dt, tex_coords.y)) * 0.077;
-  sum += texture2D(texture, vec2(tex_coords.x - 0.5*dt, tex_coords.y)) * 0.077;
-  sum += texture2D(texture, vec2(tex_coords.x, tex_coords.y)) * 0.077;
-  sum += texture2D(texture, vec2(tex_coords.x + 0.5*dt, tex_coords.y)) * 0.077;
-  sum += texture2D(texture, vec2(tex_coords.x + 1.0*dt, tex_coords.y)) * 0.077;
-  sum += texture2D(texture, vec2(tex_coords.x + 1.5*dt, tex_coords.y)) * 0.077;
-  sum += texture2D(texture, vec2(tex_coords.x + 2.0*dt, tex_coords.y)) * 0.077;
-  sum += texture2D(texture, vec2(tex_coords.x + 2.5*dt, tex_coords.y)) * 0.077;
-  sum += texture2D(texture, vec2(tex_coords.x + 3.0*dt, tex_coords.y)) * 0.077;
-
-  return  frag_color * vec4(sum.rgba);
+    return  frag_color * vec4(sum.rgba);
 }}
 """
 
@@ -167,7 +140,7 @@ void main (void){
 
 noise_shader = """
 #ifdef GL_ES
-precision highp float;
+    precision highp float;
 #endif
 
 /* Outputs from the vertex shader */
@@ -181,7 +154,6 @@ uniform sampler2D texture0;
 vec4 effect(vec4 color, sampler2D texture, vec2 tex_coords, vec2 coords)
 {{
     vec4 sum = vec4(0.0);
-
     float a = 12.9898;
     float b = 78.233;
     float c = 43758.5453;
@@ -214,17 +186,6 @@ uniform vec2 resolution;
 uniform vec4 color_overlay;
 uniform sampler2D texture1;
 uniform sampler2D texture2;
-
-
-float noise(vec2 co)
-{
-    float a = 12.9898;
-    float b = 78.233;
-    float c = 43758.5453;
-    float dt= dot(co.xy, vec2(a, b));
-    float sn= mod(dt, 3.14);
-    return fract(sin(sn) * c);
-}
 
 void main(void)
 {
@@ -267,12 +228,9 @@ class VerticalBlur(FloatLayout):
             fbo=self.set_fbo_shader,
             blur_size=self.update_glsl,
         )
-        self.glsl = horizontal_blur_shader.format(
+        self.glsl = vertical_blur_shader.format(
             MEAN_RES, float(self.blur_size)
         )
-
-        with self.canvas:
-            self.rect = Rectangle()
 
     def set_fbo_shader(self, *args):
         if self.fbo is None:
@@ -280,7 +238,7 @@ class VerticalBlur(FloatLayout):
         self.fbo.shader.fs = self.glsl + shader_footer_effect
 
     def update_glsl(self, *args):
-        self.glsl = horizontal_blur_shader.format(
+        self.glsl = vertical_blur_shader.format(
             MEAN_RES, float(self.blur_size)
         )
 
@@ -297,9 +255,11 @@ class HorizontalBlur(FloatLayout):
             fbo=self.set_fbo_shader,
             blur_size=self.update_glsl,
         )
-        self.glsl = vertical_blur_shader.format(
+        self.glsl = horizontal_blur_shader.format(
             MEAN_RES, float(self.blur_size)
         )
+        with self.canvas:
+            self.rect = Rectangle()
 
     def set_fbo_shader(self, *args):
         if self.fbo is None:
@@ -307,27 +267,17 @@ class HorizontalBlur(FloatLayout):
         self.fbo.shader.fs = self.glsl + shader_footer_effect
 
     def update_glsl(self, *args):
-        self.glsl = vertical_blur_shader.format(
+        self.glsl = horizontal_blur_shader.format(
             MEAN_RES, float(self.blur_size)
         )
 
 
-class Noise(FloatLayout):
-
-    glsl = StringProperty('')
-    fbo = ObjectProperty(None, allownone=True)
+class Noise(Fbo):
 
     def __init__(self, *args, **kwargs):
         super(Noise, self).__init__(*args, **kwargs)
-        self.bind(fbo=self.set_fbo_shader)
-        with self.canvas:
-            self.rect = Rectangle()
-        self.glsl = noise_shader
-
-    def set_fbo_shader(self, *args):
-        if self.fbo is None:
-            return
-        self.fbo.shader.fs = self.glsl + shader_footer_effect
+        self.rect = Rectangle()
+        self.shader.fs = noise_shader + shader_footer_effect
 
 
 class FrostedGlass(FloatLayout):
@@ -402,13 +352,11 @@ class FrostedGlass(FloatLayout):
             border_radius=self.update_effect
         )
 
-        self.frosted_glass_effect = FloatLayout()
-        self.frosted_glass_effect.canvas = RenderContext(
+        self.frosted_glass_effect = RenderContext(
             use_parent_projection=True,
             use_parent_modelview=True,
-            use_parent_frag_modelview=True
         )
-        with self.frosted_glass_effect.canvas:
+        with self.frosted_glass_effect:
             self.bt_1 = BindTexture(index=1)
             self.bt_2 = BindTexture(index=2)
             self.fbo_rect = RoundedRectangle(
@@ -416,75 +364,159 @@ class FrostedGlass(FloatLayout):
                 pos=self.pos,
                 radius=self.border_radius,
             )
-        self.frosted_glass_effect.canvas.shader.fs = final_shader_effect
-        self.frosted_glass_effect.canvas.shader.vs = vertex_shader
+        self.frosted_glass_effect.shader.fs = final_shader_effect
 
-        self.add_widget(self.frosted_glass_effect)
+        self.canvas.add(self.frosted_glass_effect)
 
         with self.canvas:
             self._outline_color = Color(rgba=self.outline_color)
             self.outline = SmoothLine(
                 width=1,
-                overdraw_width=dp(1.5),
+                overdraw_width=2,
                 rounded_rectangle=(
-                    self.x, self.y, self.width, self.height, 1, 1, 1, 1
+                    self.x, self.y, self.width, self.height, 1, 1, 1, 1, 45
                 )
             )
 
         self.horizontal_blur = HorizontalBlur(blur_size=self.blur_size)
         self.vertical_blur = VerticalBlur(blur_size=self.blur_size)
-        self.noise = Noise()
+        self.noise = Noise(size=(100, 100))
+        self.fbo_1 = Fbo(size=(100, 100))
+        self.fbo_2 = Fbo(size=(100, 100))
+
+        with self.fbo_1:
+            ClearColor(0, 0, 0, 0)
+            ClearBuffers()
+            self.fbo_1_scale = Scale(1, 1, 1)
+            self.fbo_1_translate = Translate(0, 0)
+
+        with self.fbo_2:
+            ClearColor(0, 0, 0, 0)
+            ClearBuffers()
+            self.fbo_2_scale = Scale(1, 1, 1)
+            self.fbo_2_translate = Translate(0, 0)
 
         self.last_value = 0
-        self.last_value_list = [0, 0]
         self.last_update_time = 0
+        self.last_value_list = [0, 0]
+        self.last_blur_size_value = None
+        self.last_fbo_pos = [None, None]
+        self.popup_parent = None
+        self.parent_screen = None
+        self.parents_list = []
+        self.background_children_list = []
+        self.background_parents_list = []
 
-        self.update_fbo_effect()
+        self.is_movable = False
+        self.adapted_fbo_size = False
 
-    def update_effect(self, *args, type=None):
-        Clock.schedule_once(partial(self.update_glsl, type), 0)
+        self.refresh_effect()
+
+    def update_effect(self, *args):
+        Clock.schedule_once(lambda _: self.update_glsl(), 0)
 
     def refresh_effect(self, *args):
-        self.update_fbo_effect()
-        self.update_effect(type=type)
-
-    def update_glsl(self, *args):
-        fge_canvas = self.frosted_glass_effect.canvas
-
-        fge_canvas["luminosity"] = float(self.luminosity)
-        fge_canvas["saturation"] = float(self.saturation)
-        fge_canvas["noise_opacity"] = float(self.noise_opacity)
-        fge_canvas["color_overlay"] = [float(v) for v in self.overlay_color]
-
         pos = self.to_window(*self.pos)
-        fge_canvas["resolution"] = [float(v) for v in self.size]
-        fge_canvas["position"] = [float(v) for v in pos]
+        Clock.schedule_once(lambda _: self.update_fbo_effect(pos), 0)
+        self.update_effect()
 
-        if "in_motion" in args:
-            self.update_fbo_effect(True)
-        elif (
-            self.fbo_1.size == (min(self.width, 150), min(self.height, 150))
-            or self.fbo_2.size == (min(self.width, 150), min(self.height, 150))
-        ):
-            self.update_fbo_effect()
+    def allow_update(self, pos):
+        x, y = pos
+        right, top = self.to_window(self.right, self.top)
 
-        self.vertical_blur.fbo = self.fbo_1
-        self.vertical_blur.fbo.add(self.background.canvas)
-        self.vertical_blur.fbo.draw()
-        self.vertical_blur.rect.size = self.size
-        self.vertical_blur.rect.pos = pos
-        self.vertical_blur.rect.texture = self.vertical_blur.fbo.texture
-        self.vertical_blur.fbo.remove(self.background.canvas)
+        out_of_the_window = (
+            right < 0
+            or top < 0
+            or x > Window.width
+            or y > Window.height
+        )
+        not_current_screen = (
+            self.parent_screen
+            and self.parent_screen.manager.current != self.parent_screen.name
+        )
+        popup_closed = (
+            self.popup_parent
+            and not self.popup_parent.parent
+        )
+        if out_of_the_window or not_current_screen or popup_closed:
+            return False
+        return True
 
-        self.horizontal_blur.fbo = self.fbo_2
-        self.horizontal_blur.fbo.add(self.vertical_blur.canvas)
-        self.horizontal_blur.fbo.draw()
-        self.horizontal_blur.fbo.remove(self.vertical_blur.canvas)
+    def update_glsl(self):
+        pos = self.to_window(*self.pos)
+        if not self.allow_update(pos):
+            return
 
-        final_texture = self.fbo_2.texture
-        self.bt_1.texture = final_texture
-        fge_canvas["texture1"] = 1
-        fge_canvas.ask_update()
+        effect = self.frosted_glass_effect
+        effect["position"] = [float(v) for v in pos]
+        effect["resolution"] = [float(v) for v in self.size]
+        effect["luminosity"] = float(self.luminosity)
+        effect["saturation"] = float(self.saturation)
+        effect["noise_opacity"] = float(self.noise_opacity)
+        effect["color_overlay"] = [float(v) for v in self.overlay_color]
+
+        if self.is_movable:
+            if not self.adapted_fbo_size:
+                self.refresh_effect()
+                self.adapted_fbo_size = True
+
+            self.fbo_1_translate.x = self.fbo_2_translate.x = - pos[0]
+            self.fbo_1_translate.y = self.fbo_2_translate.y = (
+                - pos[1] - self.size[1]
+            )
+
+        self.bt_1.texture = self._get_final_texture(pos)
+        effect["texture1"] = 1
+        effect.ask_update()
+
+    def _get_final_texture(self, pos):
+        self.fbo_1.add(self.background.canvas)
+        self.fbo_1.draw()
+        self.horizontal_blur.rect.size = self.size
+        self.horizontal_blur.rect.pos = pos
+        self.fbo_1.remove(self.background.canvas)
+        self.horizontal_blur.rect.texture = self.fbo_1.texture
+
+        self.fbo_2.add(self.horizontal_blur.canvas)
+        self.fbo_2.draw()
+        texture = self.fbo_2.texture
+        self.fbo_2.remove(self.horizontal_blur.canvas)
+
+        return texture
+
+    def update_noise_texture(self):
+        fbo_size = max(1, self.width/dp(1)), max(1, self.height/dp(1))
+        self.noise.size = fbo_size
+        self.noise.rect.size = self.size
+        self.noise.add(self.noise.rect)
+        self.noise.draw()
+        self.noise.remove(self.noise.rect)
+        self.bt_2.texture = self.noise.texture
+        self.frosted_glass_effect["texture2"] = 2
+
+    def update_fbo_effect(self, pos=None, *args):
+        if self.is_movable:
+            fbo_size = (min(self.width, 150), min(self.height, 150))
+        else:
+            fbo_size = (min(self.width, 250), min(self.height, 250))
+
+        size = max(1, self.width), max(1, self.height)
+        fbo_size = max(1, fbo_size[0]), max(1, fbo_size[1])
+
+        self.fbo_1.size = fbo_size
+        self.fbo_2.size = fbo_size
+
+        pos = pos if pos else self.to_window(*self.pos)
+        x = 1/(size[0]/fbo_size[0])
+        y = 1/(size[1]/fbo_size[1])
+
+        self.fbo_1_scale.x = self.fbo_2_scale.x = x
+        self.fbo_1_scale.y = self.fbo_2_scale.y = -y
+        self.fbo_1_translate.x = self.fbo_2_translate.x = -pos[0]
+        self.fbo_1_translate.y = self.fbo_2_translate.y = -pos[1] - size[1]
+
+        self.horizontal_blur.fbo = self.fbo_1
+        self.vertical_blur.fbo = self.fbo_2
 
     def on_touch_down(self, touch):
         if self.collide_point(*touch.pos):
@@ -494,24 +526,12 @@ class FrostedGlass(FloatLayout):
 
     def on_size(self, instance, size):
         self.update_canvas()
-        self.update_fbo_effect()
-        self.update_effect()
+        self.refresh_effect()
         self.update_noise_texture()
-
-    def update_noise_texture(self):
-        self.fbo_noise = Fbo(size=(self.width/dp(1), self.height/dp(1)))
-        self.noise.fbo = self.fbo_noise
-        self.noise.rect.size = self.size
-        self.noise.fbo.add(self.noise.canvas)
-        self.noise.fbo.draw()
-        self.noise.fbo.remove(self.noise.canvas)
-        self.bt_2.texture = self.fbo_noise.texture
-        self.frosted_glass_effect.canvas["texture2"] = 2
 
     def on_pos(self, *args):
         self.update_canvas()
-        self.update_fbo_effect()
-        self.update_effect()
+        self.refresh_effect()
 
     def on_border_radius(self, *args):
         self.update_canvas()
@@ -519,7 +539,7 @@ class FrostedGlass(FloatLayout):
     def update_canvas(self):
         border_radius = list(
             map(
-                lambda x: max(1, min(min(self.width/2, self.height/2), x)),
+                lambda x: max(1, min(min(self.width, self.height) / 2, x)),
                 self.border_radius
             )
         )
@@ -530,144 +550,126 @@ class FrostedGlass(FloatLayout):
         self._outline_color.rgba = self.outline_color
         self.outline.width = self.outline_width
         self.outline.rounded_rectangle = (
-            self.x, self.y, self.width, self.height,
-            border_radius[3],
-            border_radius[2],
-            border_radius[1],
-            border_radius[0],
+            self.x, self.y, self.width, self.height, *reversed(border_radius),
+            45
         )
 
     def on_blur_size(self, instance, blur_size):
-        self.vertical_blur.blur_size = dp(blur_size)
-        self.horizontal_blur.blur_size = dp(blur_size)
-        self.update_fbo_effect()
-        self.update_effect()
-
-    def update_fbo_effect(self, improve_performance=False):
-        if improve_performance:
-            fbo_size = (min(self.width, 150), min(self.height, 150))
-        else:
-            fbo_size = (min(self.width, 250), min(self.height, 250))
-
-        self.fbo_1 = Fbo(size=fbo_size)
-        self.fbo_2 = Fbo(size=fbo_size)
-
-        pos = self.to_window(*self.pos)
-        x = 1/(self.width/fbo_size[0])
-        y = 1/(self.height/fbo_size[1])
-        z = 1
-
-        with self.fbo_1:
-            ClearColor(0, 0, 0, 0)
-            ClearBuffers()
-            Scale(x, y, z)
-            Translate(-pos[0], -pos[1])
-
-        with self.fbo_2:
-            ClearColor(0, 0, 0, 0)
-            ClearBuffers()
-            Scale(x, y, z)
-            Translate(-pos[0], -pos[1])
+        blur_size = int(blur_size)
+        if blur_size != self.last_blur_size_value:
+            self.vertical_blur.blur_size = dp(blur_size)
+            self.horizontal_blur.blur_size = dp(blur_size)
+            self.refresh_effect()
+            self.last_blur_size_value = int(blur_size)
 
     def on_background(self, *args):
-        self.bind_parent_properties(self.background)
-        self.bind_children_properties(self.background)
+        self.background_parents_list = self._get_all_parents(self.background)
+        self.background_children_list = self._get_all_children(self.background)
+        self.bind_parent_properties(self.background_parents_list)
+        self.bind_children_properties(self.background_children_list)
 
     def on_parent(self, *args):
-        self.bind_parent_properties(self.parent, check_in_motion=True)
+        self.parents_list = self._get_all_parents(self.parent)
+        for p in self.parents_list:
+            if hasattr(p, "on_open"):
+                self.popup_parent = p
+            if isinstance(p, Screen):
+                self.parent_screen = p
+            if isinstance(p, ScrollView):
+                self.is_movable = True
+        self.bind_parent_properties(self.parents_list)
 
-    def bind_children_properties(self, widget):
-        children_list = widget.children
-        children_list_temp = []
-        while children_list:
-            for w in children_list:
-                if isinstance(w, ScrollView):
-                    w.bind(
-                        size=self.trigger_update_effect,
-                        pos=self.trigger_update_effect,
-                        scroll_x=self.trigger_update_effect,
-                        scroll_y=self.trigger_update_effect
-                    )
-                elif isinstance(w, Screen):
-                    w.bind(
-                        on_enter=lambda dt: Clock.schedule_once(
-                            self.refresh_effect, 0
-                        )
-                    )
-                elif isinstance(w, Image):
-                    w.bind(
-                        source=lambda instance, _: instance._coreimage.bind(
-                            on_texture=lambda instance:
-                            self.trigger_update_effect(instance, None)
-                        )
-                    )
-
-                else:
-                    w.bind(
-                        size=self.trigger_update_effect,
-                        pos=self.trigger_update_effect
-                    )
-
-                if w.children:
-                    for wi in w.children:
-                        children_list_temp.append(wi)
-            children_list = children_list_temp
-            children_list_temp = []
-
-    def bind_parent_properties(self, widget, check_in_motion=False):
+    def _get_all_parents(self, widget):
+        widgets_list = []
+        parent = self.parent
         while True:
+            widgets_list.append(parent)
+            if parent.parent and parent != parent.parent:
+                parent = parent.parent
+            else:
+                break
+        return widgets_list
+
+    def _get_all_children(self, widget):
+        widgets_list = [widget]
+        children_widgets = [widget]
+        while children_widgets:
+            parent_widgets = children_widgets
+            children_widgets = []
+            for w in parent_widgets:
+                if w.children:
+                    widgets_list.extend(w.children)
+                    children_widgets.extend(w.children)
+        return widgets_list
+
+    def bind_children_properties(self, children_list):
+        properties_to_bind = (
+            "pos", "size", "scroll_x", "scroll_y", "on_open", "on_enter",
+            "source"
+        )
+        for widget in children_list:
+            for property in properties_to_bind:
+                try:
+                    if property == "source":
+                        if isinstance(widget, Image):
+                            widget.bind(
+                                source=lambda instance, _:
+                                    instance._coreimage.bind(
+                                        on_texture=lambda instance:
+                                        self.trigger_update_effect("image")
+                                    )
+                            )
+                        if isinstance(widget, Video):
+                            widget.bind(
+                                loaded=lambda instance, _:
+                                    instance._video.bind(
+                                        on_frame=lambda instance:
+                                        self.trigger_update_effect("video")
+                                    )
+                            )
+                    else:
+                        widget.fbind(property, self.trigger_update_effect)
+                except Exception:
+                    pass
+
+    def bind_parent_properties(self, parents_list):
+        for widget in parents_list:
             if isinstance(widget, ScrollView):
                 widget.bind(
-                    size=partial(
-                        self.trigger_update_effect,
-                        type="in_motion" if check_in_motion else None
-                    ),
-                    pos=partial(
-                        self.trigger_update_effect,
-                        type="in_motion" if check_in_motion else None
-                    ),
-                    scroll_x=partial(
-                        self.trigger_update_effect,
-                        type="in_motion" if check_in_motion else None
-                    ),
-                    scroll_y=partial(
-                        self.trigger_update_effect,
-                        type="in_motion" if check_in_motion else None
-                    )
+                    size=partial(self.trigger_update_effect),
+                    pos=partial(self.trigger_update_effect),
+                    scroll_x=partial(self.trigger_update_effect),
+                    scroll_y=partial(self.trigger_update_effect)
                 )
             elif isinstance(widget, Screen):
                 widget.bind(on_enter=self.refresh_effect)
             else:
-                widget.bind(
-                    size=self.trigger_update_effect,
-                    pos=self.trigger_update_effect
-                )
+                widget.bind(size=self.trigger_update_effect)
+                try:
+                    widget.bind(pos=self.trigger_update_effect)
+                except Exception:
+                    pass
 
-            if widget.parent:
-                widget = widget.parent
-            else:
-                break
-
-    def trigger_update_effect(self, widget, value, type=None):
-        delta_time = now() - self.last_update_time
+    def trigger_update_effect(self, widget=None, value=None):
+        allow_update_by_timeout = (now() - self.last_update_time) >= 0.03333
         if value is None:
-            self.update_effect(type=type)
+            self.update_effect()
 
-        elif (
+        if (
             (isinstance(value, int) or isinstance(value, float))
-            and delta_time >= 0.016 and round(value, 3) != self.last_value
+            and allow_update_by_timeout and round(value, 3) != self.last_value
         ):
-            self.update_effect(type=type)
+            self.update_effect()
             self.last_value = round(value, 3)
             self.last_update_time = now()
 
         elif (
-            isinstance(value, list) and delta_time >= 0.016
+            isinstance(value, list) and allow_update_by_timeout
             and (
                 round(value[0], 2) != self.last_value_list[0]
                 or round(value[1], 2) != self.last_value_list[1]
             )
         ):
-            self.update_effect(type=type)
+            self.update_effect()
             self.last_value_list = round(value[0], 2), round(value[1], 2)
             self.last_update_time = now()
