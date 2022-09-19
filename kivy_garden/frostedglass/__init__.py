@@ -619,11 +619,13 @@ class FrostedGlass(FloatLayout):
                     if property == "texture":
                         if isinstance(widget, Image):
                             widget.bind(
-                                texture=lambda *args: self._trigger_update_effect()
+                                texture=lambda *args:
+                                    self._trigger_update_effect()
                             )
                         if isinstance(widget, Video):
                             widget.bind(
-                                position=lambda *args: self._trigger_update_effect()
+                                position=lambda *args:
+                                    self._trigger_update_effect()
                             )
                     elif hasattr(widget, property):
                         widget.fbind(
