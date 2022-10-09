@@ -1,10 +1,15 @@
 import fps_monitor
 from kivy.app import App
-from kivy.lang import Builder
 from kivy.core.window import Window
+from kivy.lang import Builder
 from kivy.uix.floatlayout import FloatLayout
-from kivy.uix.screenmanager import ScreenManager, Screen
-from kivy_garden.frostedglass import FrostedGlass
+from kivy.uix.screenmanager import Screen, ScreenManager
+from kivy.utils import platform
+
+from kivy_garden.frostedglass import FrostedGlass  # FrostedGlass import
+
+if platform not in ("android", "ios"):
+    Window.size = (360, 640)
 
 Builder.load_file('test.kv')
 
@@ -22,6 +27,10 @@ class Screen2(Screen):
 
 
 class Screen3(Screen):
+    pass
+
+
+class Screen4(Screen):
     pass
 
 
