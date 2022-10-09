@@ -1,13 +1,14 @@
 """
+============
 FrostedGlass
 ============
 
-FrostedGlass is a widget with translucent frosted glass effect, that creates a
-context with the background behind it.
+FrostedGlass is a widget with translucent frosted glass effect, that
+creates a context with the background behind it.
 
-The effect created is based on the widget passed in as the background. You can
-control the blur size, saturation, luminosity, overlay color, noise opacity,
-border radius and the outline (color and width).
+The effect created is based on the widget/layout passed in as the background.
+You can control the blur size, saturation, luminosity, overlay color, noise
+opacity, border radius and the outline (color and width).
 """
 
 __all__ = ("FrostedGlass",)
@@ -37,7 +38,6 @@ from kivy.properties import (
     ListProperty,
     NumericProperty,
     ObjectProperty,
-    StringProperty,
 )
 from kivy.uix.floatlayout import FloatLayout
 
@@ -63,11 +63,12 @@ varying vec2 tex_coord0;
 /* uniform texture samplers */
 uniform sampler2D texture0;
 
+uniform float mean_res;
+uniform float blur_size;
 
 vec4 effect(vec4 color, sampler2D texture, vec2 tex_coords, vec2 coords)
 {{
-    float mean_res = float({});
-    float dt = (({} / 2.0) * 1.0 / mean_res);
+    float dt = ((blur_size / 2.0) * 1.0 / mean_res);
     vec4 sum = vec4(0.0);
 
     sum += texture2D(texture, vec2(tex_coords.x, tex_coords.y+3.0*dt))*0.077;
@@ -86,6 +87,14 @@ vec4 effect(vec4 color, sampler2D texture, vec2 tex_coords, vec2 coords)
 
     return frag_color * vec4(sum.rgba);
 }}
+
+void main (void){
+  vec4 normal_color = frag_color * texture2D(texture0, tex_coord0);
+  vec4 effect_color = effect(
+      normal_color, texture0, tex_coord0, gl_FragCoord.xy
+  );
+  gl_FragColor = effect_color;
+}
 """
 
 
@@ -101,11 +110,12 @@ varying vec2 tex_coord0;
 /* uniform texture samplers */
 uniform sampler2D texture0;
 
+uniform float mean_res;
+uniform float blur_size;
 
 vec4 effect(vec4 color, sampler2D texture, vec2 tex_coords, vec2 coords)
 {{
-    float mean_res = float({});
-    float dt = ({} / 2.0) * 1.0 / mean_res;
+    float dt = (blur_size / 2.0) * 1.0 / mean_res;
     vec4 sum = vec4(0.0);
 
     sum += texture2D(texture, vec2(tex_coords.x+3.0*dt, tex_coords.y))*0.077;
@@ -124,10 +134,7 @@ vec4 effect(vec4 color, sampler2D texture, vec2 tex_coords, vec2 coords)
 
     return  frag_color * vec4(sum.rgba);
 }}
-"""
 
-
-shader_footer_effect = """
 void main (void){
   vec4 normal_color = frag_color * texture2D(texture0, tex_coord0);
   vec4 effect_color = effect(
@@ -166,6 +173,14 @@ vec4 effect(vec4 color, sampler2D texture, vec2 tex_coords, vec2 coords)
 
     return vec4(sum.rgba);
 }}
+
+void main (void){
+  vec4 normal_color = frag_color * texture2D(texture0, tex_coord0);
+  vec4 effect_color = effect(
+      normal_color, texture0, tex_coord0, gl_FragCoord.xy
+  );
+  gl_FragColor = effect_color;
+}
 """
 
 
@@ -216,67 +231,25 @@ void main(void)
 """
 
 
-class VerticalBlur(FloatLayout):
-
-    glsl = StringProperty("")
-    fbo = ObjectProperty(None, allownone=True)
-    blur_size = NumericProperty(0.0)
-
+class VerticalBlur(Fbo):
     def __init__(self, *args, **kwargs):
-        super(VerticalBlur, self).__init__(*args, **kwargs)
-        self.bind(
-            fbo=self._set_fbo_shader,
-            blur_size=self._update_glsl,
-        )
-        self.glsl = vertical_blur_shader.format(
-            MEAN_RES, float(self.blur_size)
-        )
-
-    def _set_fbo_shader(self, *args):
-        if self.fbo is None:
-            return
-        self.fbo.shader.fs = self.glsl + shader_footer_effect
-
-    def _update_glsl(self, *args):
-        self.glsl = vertical_blur_shader.format(
-            MEAN_RES, float(self.blur_size)
-        )
+        super(VerticalBlur, self).__init__(*args, fs=vertical_blur_shader, **kwargs)
+        self["mean_res"] = MEAN_RES
+        self["blur_size"] = dp(25)
 
 
-class HorizontalBlur(FloatLayout):
-
-    glsl = StringProperty("")
-    fbo = ObjectProperty(None, allownone=True)
-    blur_size = NumericProperty(0.0)
-
+class HorizontalBlur(Fbo):
     def __init__(self, *args, **kwargs):
-        super(HorizontalBlur, self).__init__(*args, **kwargs)
-        self.bind(
-            fbo=self._set_fbo_shader,
-            blur_size=self._update_glsl,
-        )
-        self.glsl = horizontal_blur_shader.format(
-            MEAN_RES, float(self.blur_size)
-        )
-        with self.canvas:
-            self.rect = Rectangle()
-
-    def _set_fbo_shader(self, *args):
-        if self.fbo is None:
-            return
-        self.fbo.shader.fs = self.glsl + shader_footer_effect
-
-    def _update_glsl(self, *args):
-        self.glsl = horizontal_blur_shader.format(
-            MEAN_RES, float(self.blur_size)
-        )
+        super(HorizontalBlur, self).__init__(*args, fs=horizontal_blur_shader, **kwargs)
+        self.rect = Rectangle()
+        self["mean_res"] = MEAN_RES
+        self["blur_size"] = dp(25)
 
 
 class Noise(Fbo):
     def __init__(self, *args, **kwargs):
-        super(Noise, self).__init__(*args, **kwargs)
+        super(Noise, self).__init__(*args, fs=noise_shader, **kwargs)
         self.rect = Rectangle()
-        self.shader.fs = noise_shader + shader_footer_effect
 
 
 class FrostedGlass(FloatLayout):
@@ -343,18 +316,20 @@ class FrostedGlass(FloatLayout):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.bind(
-            blur_size=self.update_effect,
-            noise_opacity=self.update_effect,
-            luminosity=self.update_effect,
-            saturation=self.update_effect,
-            overlay_color=self.update_effect,
-            border_radius=self.update_effect,
-        )
+        fbind = self.fbind
+        fbind("outline_width", self._update_canvas)
+        fbind("outline_color", self._update_canvas)
+        fbind("border_radius", self._update_canvas)
+        fbind("noise_opacity", self.update_effect)
+        fbind("luminosity", self.update_effect)
+        fbind("saturation", self.update_effect)
+        fbind("overlay_color", self.update_effect)
+        fbind("border_radius", self.update_effect)
 
         self.frosted_glass_effect = RenderContext(
             use_parent_projection=True,
             use_parent_modelview=True,
+            fs=final_shader_effect
         )
         with self.frosted_glass_effect:
             self.bt_1 = BindTexture(index=1)
@@ -364,7 +339,6 @@ class FrostedGlass(FloatLayout):
                 pos=self.pos,
                 radius=self.border_radius,
             )
-        self.frosted_glass_effect.shader.fs = final_shader_effect
         self.frosted_glass_effect["texture1"] = 1
         self.frosted_glass_effect["texture2"] = 2
 
@@ -382,23 +356,21 @@ class FrostedGlass(FloatLayout):
                 ),
             )
 
-        self.horizontal_blur = HorizontalBlur(blur_size=self.blur_size)
-        self.vertical_blur = VerticalBlur(blur_size=self.blur_size)
         self.noise = Noise(size=(100, 100))
-        self.fbo_1 = Fbo(size=(100, 100))
-        self.fbo_2 = Fbo(size=(100, 100))
+        self.h_blur = HorizontalBlur(size=(100, 100))
+        self.v_blur = VerticalBlur(size=(100, 100))
 
-        with self.fbo_1:
+        with self.h_blur:
             ClearColor(0, 0, 0, 0)
             ClearBuffers()
-            self.fbo_1_scale = Scale(1, 1, 1)
-            self.fbo_1_translate = Translate(0, 0)
+            self.h_blur_scale = Scale(1, 1, 1)
+            self.h_blur_translate = Translate(0, 0)
 
-        with self.fbo_2:
+        with self.v_blur:
             ClearColor(0, 0, 0, 0)
             ClearBuffers()
-            self.fbo_2_scale = Scale(1, 1, 1)
-            self.fbo_2_translate = Translate(0, 0)
+            self.v_blur_scale = Scale(1, 1, 1)
+            self.v_blur_translate = Translate(0, 0)
 
         self.last_value = 0
         self.last_update_time = 0
@@ -456,8 +428,8 @@ class FrostedGlass(FloatLayout):
                 self.refresh_effect()
                 self.adapted_fbo_size = True
 
-            self.fbo_1_translate.x = self.fbo_2_translate.x = -self._pos[0]
-            self.fbo_1_translate.y = self.fbo_2_translate.y = (
+            self.h_blur_translate.x = self.v_blur_translate.x = -self._pos[0]
+            self.h_blur_translate.y = self.v_blur_translate.y = (
                 -self._pos[1] - self.size[1]
             )
 
@@ -467,23 +439,23 @@ class FrostedGlass(FloatLayout):
         if not self.background:
             return
 
-        if self.background.canvas not in self.fbo_1.children:
-            self.fbo_1.add(self.background.canvas)
-            self.fbo_1.draw()
-            self.fbo_2.add(self.horizontal_blur.canvas)
-            self.fbo_2.draw()
+        if self.background.canvas not in self.h_blur.children:
+            self.h_blur.add(self.background.canvas)
+            self.h_blur.draw()
+            self.v_blur.add(self.h_blur.rect)
+            self.v_blur.draw()
 
-        if self.horizontal_blur.rect.texture != self.fbo_1.texture:
-            self.horizontal_blur.rect.texture = self.fbo_1.texture
+        if self.h_blur.rect.texture != self.h_blur.texture:
+            self.h_blur.rect.texture = self.h_blur.texture
 
-        self.horizontal_blur.rect.size = self.size
-        self.horizontal_blur.rect.pos = self._pos
-        self.fbo_1.draw()
-        self.fbo_2.draw()
-        self.fbo_2.ask_update()
+        self.h_blur.rect.size = self.size
+        self.h_blur.rect.pos = self._pos
 
-        self.bt_1.texture = self.fbo_2.texture
-        self.frosted_glass_effect.ask_update()
+        self.h_blur.draw()
+        self.v_blur.draw()
+        self.v_blur.ask_update()
+
+        self.bt_1.texture = self.v_blur.texture
 
         if self._update_texture_ev.timeout == 0:
             self._update_texture_ev.timeout = -1
@@ -498,7 +470,6 @@ class FrostedGlass(FloatLayout):
         self.bt_2.texture = self.noise.texture
 
     def _update_fbo_effect(self, *args):
-
         if self.is_movable:
             fbo_size = (min(self.width, 150), min(self.height, 150))
         else:
@@ -507,20 +478,17 @@ class FrostedGlass(FloatLayout):
         size = max(1, self.width), max(1, self.height)
         fbo_size = max(1, fbo_size[0]), max(1, fbo_size[1])
 
-        self.fbo_1.size = fbo_size
-        self.fbo_2.size = fbo_size
+        self.h_blur.size = fbo_size
+        self.v_blur.size = fbo_size
 
         pos = self.to_window(*self.pos)
         x = 1 / (size[0] / fbo_size[0])
         y = 1 / (size[1] / fbo_size[1])
 
-        self.fbo_1_scale.x = self.fbo_2_scale.x = x
-        self.fbo_1_scale.y = self.fbo_2_scale.y = -y
-        self.fbo_1_translate.x = self.fbo_2_translate.x = -pos[0]
-        self.fbo_1_translate.y = self.fbo_2_translate.y = -pos[1] - size[1]
-
-        self.horizontal_blur.fbo = self.fbo_1
-        self.vertical_blur.fbo = self.fbo_2
+        self.h_blur_scale.x = self.v_blur_scale.x = x
+        self.h_blur_scale.y = self.v_blur_scale.y = -y
+        self.h_blur_translate.x = self.v_blur_translate.x = -pos[0]
+        self.h_blur_translate.y = self.v_blur_translate.y = -pos[1] - size[1]
 
     def on_touch_down(self, touch):
         if self.collide_point(*touch.pos):
@@ -537,10 +505,7 @@ class FrostedGlass(FloatLayout):
         self._update_canvas()
         self.refresh_effect()
 
-    def on_border_radius(self, *args):
-        self._update_canvas()
-
-    def _update_canvas(self):
+    def _update_canvas(self, *args):
         border_radius = list(
             map(
                 lambda x: max(1, min(min(self.width, self.height) / 2, x)),
@@ -562,10 +527,10 @@ class FrostedGlass(FloatLayout):
     def on_blur_size(self, instance, blur_size):
         blur_size = int(blur_size)
         if blur_size != self.last_blur_size_value:
-            self.vertical_blur.blur_size = dp(blur_size)
-            self.horizontal_blur.blur_size = dp(blur_size)
-            self.refresh_effect()
-            self.last_blur_size_value = int(blur_size)
+            self.v_blur["blur_size"] = dp(blur_size)
+            self.h_blur["blur_size"] = dp(blur_size)
+            self.update_effect()
+            self.last_blur_size_value = blur_size
 
     def on_background(self, *args):
         if not self.background:
@@ -656,6 +621,10 @@ class FrostedGlass(FloatLayout):
                         scroll_y
                     ),
                 )
+            if isinstance(widget, ModalView):
+                widget.bind(
+                    on_pre_open=lambda *args: self._trigger_update_effect()
+                )
             elif isinstance(widget, Screen):
                 widget.bind(
                     on_pre_enter=lambda *args: self._refresh_effect_ev()
@@ -727,4 +696,4 @@ class FrostedGlass(FloatLayout):
     def background_loaded(self):
         if not self.background:
             return False
-        return self.background.canvas in self.fbo_1.children
+        return self.background.canvas in self.h_blur.children

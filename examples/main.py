@@ -9,7 +9,8 @@ from kivy.utils import platform
 from kivy_garden.frostedglass import FrostedGlass  # FrostedGlass import
 
 if platform not in ("android", "ios"):
-    Window.size = (360, 640)
+    Window.size = (480, 854)
+    Window.top = 50
 
 Builder.load_file('test.kv')
 
