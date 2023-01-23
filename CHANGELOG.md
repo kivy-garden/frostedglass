@@ -1,6 +1,31 @@
 # Changelog
 <br>
 
+# 0.3.0 → 2023-01-23
+
+Highlights
+----------
+
+- Performance improvement with new rules for widget update. Only widgets inside the window, or on the current screen (when using `ScreenManager`) will be updated, avoiding unnecessary computation of widgets that are not being viewed.
+- Improved integration with `ModalView`.
+- Significant performance improvement when using multiple moving `FrostedGlass` widgets (like inside a `ScrollView`).
+- Added support for auto-update when using videos as background.
+- Improved performance when animating the `blur_size` property.
+- Minor bug fixes.
+
+Docs
+----------
+- Added usage example with `ModalView`.
+- Updated overview video with new example using `ModalView`.
+
+Internal
+----------
+
+- Removed final effect widget from child widget tree. Now the effect is drawn directly on the canvas.
+- General refactoring.
+
+<br>
+
 # 0.2.0 → 2022-03-08
 
 Highlights
