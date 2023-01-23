@@ -17,4 +17,4 @@ The contents of this folder are ready to be used on any platforms supported by K
 
 # Examples overview:
 
-https://user-images.githubusercontent.com/73297572/160003704-88133597-e64e-4545-b314-925084e6c273.mp4
+https://user-images.githubusercontent.com/73297572/214140662-8703ef05-ff28-4712-a081-519624e3b5ba.mp4
