@@ -62,6 +62,8 @@ FrostedGlass:
         font_size: dp(25)
 ```
 
+<br>
+
 ## FrostedGlass Showcase:
 
 **You can find the source code in the 🔷[examples folder](https://github.com/kivy-garden/frostedglass/tree/develop/examples)🔷**
@@ -70,16 +72,12 @@ https://user-images.githubusercontent.com/73297572/214139558-f995ac2c-77bb-4952-
 
 <br>
 
----
-
-
 ## Overview of *FrostedGlass* creation process
 
 To reach the final result of the **FrostedGlass** widget, the steps described in the image below are followed:
 
 ![](https://github.com/kivy-garden/frostedglass/blob/develop/doc/images/FrostedgGlass_overview.png?raw=true)
 
----
 <br>
 
 ## Features
@@ -93,8 +91,6 @@ Overview:
 - Avoid unnecessary computation of the effect. If any FrostedGlass widget is not visible, it will not be updated.
 - Full control over FrostedGlass properties. The widget is not limited to the frosted glass effect, it can be used simply as an option to achieve gaussian blur of some "background".
 
-
----
 <br>
 
 ## Guidelines
@@ -104,6 +100,8 @@ The FrostedGlass widget is designed to update the effect whenever there is a cha
 But if it doesn't, you can call the `update_effect()` method manually to update the effect.
 
 If calling the `update_effect()` method did not update the effect, you may need to call the `refresh_effect()` method.
+
+<br>
 
 ---
 
