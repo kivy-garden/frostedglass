@@ -233,14 +233,18 @@ void main(void)
 
 class VerticalBlur(Fbo):
     def __init__(self, *args, **kwargs):
-        super(VerticalBlur, self).__init__(*args, fs=vertical_blur_shader, **kwargs)
+        super(VerticalBlur, self).__init__(
+            *args, fs=vertical_blur_shader, **kwargs
+        )
         self["mean_res"] = MEAN_RES
         self["blur_size"] = dp(25)
 
 
 class HorizontalBlur(Fbo):
     def __init__(self, *args, **kwargs):
-        super(HorizontalBlur, self).__init__(*args, fs=horizontal_blur_shader, **kwargs)
+        super(HorizontalBlur, self).__init__(
+            *args, fs=horizontal_blur_shader, **kwargs
+        )
         self.rect = Rectangle()
         self["mean_res"] = MEAN_RES
         self["blur_size"] = dp(25)
