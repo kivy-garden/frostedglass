@@ -677,10 +677,9 @@ class FrostedGlass(FloatLayout):
 
     @property
     def not_current_screen(self):
-        return (
-            self.parent_screen
-            and self.parent_screen.manager.current != self.parent_screen.name
-        )
+        if self.parent_screen is None:
+            return False
+        return self.parent_screen.manager.current != self.parent_screen.name
 
     @property
     def out_of_the_window(self):
