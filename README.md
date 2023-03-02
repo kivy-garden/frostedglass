@@ -66,7 +66,7 @@ FrostedGlass:
 
 ## FrostedGlass Showcase:
 
-**You can find the source code in the 🔷[examples folder](https://github.com/kivy-garden/frostedglass/tree/develop/examples)🔷**
+**You can find the source code in the 🔷[examples folder](https://github.com/kivy-garden/frostedglass/tree/main/examples)🔷**
 
 https://user-images.githubusercontent.com/73297572/214139558-f995ac2c-77bb-4952-a82b-212e2f31d65f.mp4
 

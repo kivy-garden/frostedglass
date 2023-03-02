@@ -8,7 +8,7 @@ When you run the `main.py` file you will see four common types of `FrostedGlass`
 
 The main intention is to give a basic idea of how to combine `FrostedGlass` with the rest of the UI. These are just some of the many possible combinations you can make. *The creativity is yours!*
 
-An FPS meter (`fps_monitor.py`) will also be imported and used to display the current FPS of the UI. But attention, its use is indicated only for development purposes and contribution to the `FrostedGlass` project widget. For final product uses, perform conventional import and use as described on the project homepage: [*Import and Usage*](https://github.com/kivy-garden/frostedglass/blob/develop/README.md#import)
+An FPS meter (`fps_monitor.py`) will also be imported and used to display the current FPS of the UI. But attention, its use is indicated only for development purposes and contribution to the `FrostedGlass` project widget. For final product uses, perform conventional import and use as described on the project homepage: [*Import and Usage*](https://github.com/kivy-garden/frostedglass/blob/main/README.md#import)
 
 ### For contributors:
 
