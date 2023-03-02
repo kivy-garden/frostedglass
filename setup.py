@@ -22,7 +22,7 @@ URL = 'https://github.com/kivy-garden/frostedglass'
 setup(
     name='kivy_garden.frostedglass',
     version=__version__,
-    description='A kivy garden frostedglass.',
+    description='FrostedGlass is a Kivy widget with frosted glass effect.',
     long_description=long_description,
     long_description_content_type='text/markdown',
     url=URL,

@@ -1,8 +1,12 @@
 # FrostedGlass
 
-**FrostedGlass** is a widget with translucent frosted glass effect, that creates a context with the background behind it.
+**FrostedGlass** is a widget with translucent frosted glass effect, that
+creates a context with the background behind it.
 
-The effect created is based on the widget passed in as the background. You can control the blur size, saturation, luminosity, overlay color, noise opacity, border radius and the outline (color and width).
+The effect created is based on the widget/layout passed in as the background.
+You can control the blur size, saturation, luminosity, overlay color, noise
+opacity, border radius and the outline (color and width).
+
 
 ![](https://github.com/kivy-garden/frostedglass/blob/main/doc/images/example_1.png?raw=true)
 ![](https://github.com/kivy-garden/frostedglass/blob/main/doc/images/example_2.gif?raw=true)
@@ -14,7 +18,14 @@ The effect created is based on the widget passed in as the background. You can c
     pip install kivy_garden.frostedglass
 
 ## Import
+
+**_python_ import:**
+
     from kivy_garden.frostedglass import FrostedGlass
+
+**or _kvlang_ import:**
+
+    #: import FrostedGlass kivy_garden.frostedglass
 
 ## Usage
 
@@ -50,22 +61,47 @@ FrostedGlass:
         color: 'black'
         font_size: dp(25)
 ```
-### You can find more usage examples in the 🔷[examples folder](https://github.com/kivy-garden/frostedglass/tree/main/examples)🔷
 
----
+<br>
+
+## FrostedGlass Showcase:
+
+**You can find the source code in the 🔷[examples folder](https://github.com/kivy-garden/frostedglass/tree/main/examples)🔷**
+
+https://user-images.githubusercontent.com/73297572/214139558-f995ac2c-77bb-4952-a82b-212e2f31d65f.mp4
+
+<br>
 
 ## Overview of *FrostedGlass* creation process
 
-To reach the final result of the FrostedGlass widget, the steps described in the image below are followed:
+To reach the final result of the **FrostedGlass** widget, the steps described in the image below are followed:
 
 ![](https://github.com/kivy-garden/frostedglass/blob/main/doc/images/FrostedgGlass_overview.png?raw=true)
 
----
+<br>
+
+## Features
+
+FrostedGlass is efficient and makes internal optimizations to deliver the best performance while maintaining the quality of the effect, regardless of implementation, for all platforms supported by Kivy.
+
+Overview:
+
+- Automatic effect update, with auto bind to background properties.
+- Updates effect only when needed. The effect update will only occur when some background or FrostedGlass property requires the update.
+- Avoid unnecessary computation of the effect. If any FrostedGlass widget is not visible, it will not be updated.
+- Full control over FrostedGlass properties. The widget is not limited to the frosted glass effect, it can be used simply as an option to achieve gaussian blur of some "background".
+
+<br>
 
 ## Guidelines
-The FrostedGlass widget will attempt to update the effect whenever there is a change to its properties or background properties that require an effect update to keep the effect in sync. But if it doesn't, you can call the `update_effect()` method manually to update the effect.
 
-If calling the `update_effect()` method did not update the effect, you may need to call the `refresh_effect()` method. But beware, calling this effect continuously in a small interval of time can reduce the widget's performance.
+The FrostedGlass widget is designed to update the effect whenever there is a change to its properties or background properties that requires an effect update, to keep the effect in sync with the background. 
+
+But if it doesn't, you can call the `update_effect()` method manually to update the effect.
+
+If calling the `update_effect()` method did not update the effect, you may need to call the `refresh_effect()` method.
+
+<br>
 
 ---
 
@@ -73,7 +109,7 @@ If calling the `update_effect()` method did not update the effect, you may need 
 
     background
 
-> Target widget/layout that will be used as a background to FrostedGlass.
+> Target widget/layout that will be used as a background to **FrostedGlass**.
 > The recomended way to pass the widget is through the widget/layout **id**.
 > 
 > `background` is defaults to `None`.
@@ -84,7 +120,7 @@ If calling the `update_effect()` method did not update the effect, you may need 
 
 > Size of the gaussian blur aplied to the background.
 
-❗️*Note: Do not pass relative values such as **dp** or **sp**. FrostedGlass already
+❗️*Note: Do not pass relative values such as **dp** or **sp**. **FrostedGlass** already
     manages this automatically, according to the device's screen density.*
 
 > `blur_size` is defaults to `25`.
@@ -149,13 +185,11 @@ If calling the `update_effect()` method did not update the effect, you may need 
 
 <br/>
 
-
-
     update_effect()
 
 > Updates the effect only once with each method call.
 
-❗️*Note: Use this method to update the effect only if it doesn't update automatically.*
+❗️*Note: Use this method to update the effect only if **FrostedGlass** doesn't update automatically.*
 
 <br/>
 
@@ -163,9 +197,7 @@ If calling the `update_effect()` method did not update the effect, you may need 
 
 > Updates the effect only once with each method call. Sould be used as an alternative, when `update_effect()` doesn't update the effect totally.
 
-❗️*Note: Use this method to update the effect only if it doesn't update automatically and `update_effect()` doesn't update the effect.*
-
-❗️*Note: Unlike `update_effect()` method, `refresh_effect()` will refresh the FBO on each call, wich can lead to a performance drop if called continuously on a small interval of time.*
+❗️*Note: Use this method to update the effect only if **FrostedGlass** doesn't update automatically and `update_effect()` was not enough to update the effect.*
 
 ---
 
