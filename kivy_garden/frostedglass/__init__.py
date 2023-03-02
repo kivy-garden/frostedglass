@@ -415,9 +415,6 @@ class FrostedGlass(FloatLayout):
             and self.background_loaded
         ):
             return
-        if self.popup_closed:
-            Window.canvas.ask_update()
-            return
 
         effect = self.frosted_glass_effect
         effect["position"] = [float(v) for v in self._pos]
@@ -458,6 +455,7 @@ class FrostedGlass(FloatLayout):
         self.h_blur.draw()
         self.v_blur.draw()
         self.v_blur.ask_update()
+        Window.canvas.ask_update()
 
         self.bt_1.texture = self.v_blur.texture
 
