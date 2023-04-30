@@ -15,6 +15,7 @@ __all__ = ("FrostedGlass",)
 
 from ._version import __version__
 
+import os
 from time import perf_counter as now
 
 from kivy.clock import Clock
@@ -387,6 +388,7 @@ class FrostedGlass(FloatLayout):
         self.parents_list = []
         self.background_children_list = []
         self.background_parents_list = []
+        self._last_background_canvas = None
 
         self.is_movable = False
         self.adapted_fbo_size = False
@@ -399,6 +401,10 @@ class FrostedGlass(FloatLayout):
         self._refresh_effect_ev = Clock.create_trigger(
             self.refresh_effect, 0.033333, True
         )
+
+        if not os.environ.get("FG_ASK_UPDATE_CANVAS_ACTIVE"):
+            os.environ["FG_ASK_UPDATE_CANVAS_ACTIVE"] = "1"
+            Clock.schedule_interval(lambda dt: Window.canvas.ask_update(), 0)
 
     def update_effect(self, *args):
         self._update_glsl_ev()
@@ -440,11 +446,9 @@ class FrostedGlass(FloatLayout):
         if not self.background:
             return
 
-        if self.background.canvas not in self.h_blur.children:
-            self.h_blur.add(self.background.canvas)
-            self.h_blur.draw()
+        if self._last_background_canvas not in self.h_blur.children:
+            self.h_blur.add(self._last_background_canvas)
             self.v_blur.add(self.h_blur.rect)
-            self.v_blur.draw()
 
         if self.h_blur.rect.texture != self.h_blur.texture:
             self.h_blur.rect.texture = self.h_blur.texture
@@ -455,7 +459,6 @@ class FrostedGlass(FloatLayout):
         self.h_blur.draw()
         self.v_blur.draw()
         self.v_blur.ask_update()
-        Window.canvas.ask_update()
 
         self.bt_1.texture = self.v_blur.texture
 
@@ -534,16 +537,28 @@ class FrostedGlass(FloatLayout):
             self.update_effect()
             self.last_blur_size_value = blur_size
 
-    def on_background(self, *args):
-        if not self.background:
+    def on_background(self, _, background):
+        if not background:
             return
+
+        if self._last_background_canvas in self.h_blur.children:
+            self.h_blur.remove(self._last_background_canvas)
+            self.update_effect()
+            self._unbind_parent_properties(self.background_parents_list)
+            self._unbind_children_properties(self.background_children_list)
+
+        self._last_background_canvas = background.canvas
+
         self.background_parents_list = self._get_all_parents(self.background)
         self.background_children_list = self._get_all_children(self.background)
         self._bind_parent_properties(self.background_parents_list)
         self._bind_children_properties(self.background_children_list)
 
-    def on_parent(self, *args):
-        self.parents_list = self._get_all_parents(self.parent)
+    def on_parent(self, _, parent):
+        if not parent:
+            return
+
+        self.parents_list = self._get_all_parents(parent)
         for p in self.parents_list:
             if isinstance(p, ModalView):
                 self.popup_parent = p
@@ -555,7 +570,7 @@ class FrostedGlass(FloatLayout):
 
     def _get_all_parents(self, widget):
         widgets_list = []
-        parent = self.parent
+        parent = widget
         while True:
             widgets_list.append(parent)
             if parent.parent and parent != parent.parent:
@@ -592,18 +607,16 @@ class FrostedGlass(FloatLayout):
                     if property == "texture":
                         if isinstance(widget, Image):
                             widget.bind(
-                                texture=lambda *args:
-                                    self._trigger_update_effect()
+                                texture=self._trigger_update_effect
                             )
                         if isinstance(widget, Video):
                             widget.bind(
-                                position=lambda *args:
-                                    self._trigger_update_effect()
+                                position=self._trigger_update_effect
                             )
                     elif hasattr(widget, property):
                         widget.fbind(
                             property,
-                            lambda *args: self._trigger_update_effect(),
+                            self._trigger_update_effect,
                         )
                 except Exception as e:
                     print(e)
@@ -614,18 +627,14 @@ class FrostedGlass(FloatLayout):
 
             if isinstance(widget, ScrollView):
                 widget.bind(
-                    size=lambda _, size: self._trigger_update_effect(size),
-                    pos=lambda _, pos: self._trigger_update_effect(pos),
-                    scroll_x=lambda _, scroll_x: self._trigger_update_effect(
-                        scroll_x
-                    ),
-                    scroll_y=lambda _, scroll_y: self._trigger_update_effect(
-                        scroll_y
-                    ),
+                    size=self._trigger_update_effect,
+                    pos=self._trigger_update_effect,
+                    scroll_x=self._trigger_update_effect,
+                    scroll_y=self._trigger_update_effect,
                 )
             if isinstance(widget, ModalView):
                 widget.bind(
-                    on_pre_open=lambda *args: self._trigger_update_effect()
+                    on_pre_open=self._trigger_update_effect
                 )
             elif isinstance(widget, Screen):
                 widget.bind(
@@ -636,17 +645,73 @@ class FrostedGlass(FloatLayout):
                 )
 
             else:
-                widget.bind(
-                    size=lambda _, size: self._trigger_update_effect(size)
-                )
+                widget.bind(size=self._trigger_update_effect)
                 try:
-                    widget.bind(
-                        pos=lambda _, pos: self._trigger_update_effect(pos)
-                    )
+                    widget.bind(pos=self._trigger_update_effect)
                 except Exception:
                     pass
 
-    def _trigger_update_effect(self, value=None):
+    def _unbind_children_properties(self, children_list):
+        properties_to_unbind = (
+            "pos",
+            "size",
+            "scroll_x",
+            "scroll_y",
+            "on_open",
+            "on_enter",
+            "texture",
+        )
+        for widget in children_list:
+            for property in properties_to_unbind:
+                try:
+                    if property == "texture":
+                        if isinstance(widget, Image):
+                            widget.unbind(
+                                texture=self._trigger_update_effect
+                            )
+                        if isinstance(widget, Video):
+                            widget.unbind(
+                                position=self._trigger_update_effect
+                            )
+                    elif hasattr(widget, property):
+                        widget.funbind(
+                            property,
+                            self._trigger_update_effect,
+                        )
+                except Exception as e:
+                    print(e)
+                    pass
+
+    def _unbind_parent_properties(self, parents_list):
+        for widget in parents_list:
+
+            if isinstance(widget, ScrollView):
+                widget.unbind(
+                    size=self._trigger_update_effect,
+                    pos=self._trigger_update_effect,
+                    scroll_x=self._trigger_update_effect,
+                    scroll_y=self._trigger_update_effect,
+                )
+            if isinstance(widget, ModalView):
+                widget.unbind(
+                    on_pre_open=self._trigger_update_effect
+                )
+            elif isinstance(widget, Screen):
+                widget.unbind(
+                    on_pre_enter=lambda *args: self._refresh_effect_ev()
+                )
+                widget.unbind(
+                    on_enter=lambda *args: self._refresh_effect_ev.cancel()
+                )
+
+            else:
+                widget.unbind(size=self._trigger_update_effect)
+                try:
+                    widget.unbind(pos=self._trigger_update_effect)
+                except Exception:
+                    pass
+
+    def _trigger_update_effect(self, widget, value=None):
         if value is None and self.update_by_timeout:
             self.update_effect()
 
@@ -675,7 +740,7 @@ class FrostedGlass(FloatLayout):
 
     @property
     def not_current_screen(self):
-        if self.parent_screen is None:
+        if self.parent_screen is None or self.parent_screen.manager is None:
             return False
         return self.parent_screen.manager.current != self.parent_screen.name
 
