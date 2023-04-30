@@ -1,6 +1,16 @@
 # Changelog
 <br>
 
+# 0.3.1 → 2023-04-30
+
+Fixed
+----------
+
+- Fix related to state of UI not updating when needed.
+- Fix that allows changing the background dynamically (with binding and unbinding properties).
+- Fixed issue that caused the app to crash if an instance of FrostedGlass was removed.
+- Improved binding/unbinding of properties.
+
 # 0.3.0 → 2023-01-23
 
 Highlights
