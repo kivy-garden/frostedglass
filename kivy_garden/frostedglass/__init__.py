@@ -15,6 +15,9 @@ __all__ = ("FrostedGlass",)
 
 from ._version import __version__
 
+import kivy
+kivy.require('2.2.0')
+
 import os
 from time import perf_counter as now
 
@@ -457,6 +460,7 @@ class FrostedGlass(FloatLayout):
         self.h_blur.rect.pos = self._pos
 
         self.h_blur.draw()
+        self.h_blur.ask_update()
         self.v_blur.draw()
         self.v_blur.ask_update()
 
@@ -526,7 +530,7 @@ class FrostedGlass(FloatLayout):
         self.outline.rounded_rectangle = (
             self.x, self.y,
             self.width, self.height,
-            *reversed(border_radius), 45,
+            *border_radius, 45,
         )
 
     def on_blur_size(self, instance, blur_size):
@@ -712,11 +716,8 @@ class FrostedGlass(FloatLayout):
                     pass
 
     def _trigger_update_effect(self, widget, value=None):
-        if value is None and self.update_by_timeout:
-            self.update_effect()
-
         if (
-            (isinstance(value, int) or isinstance(value, float))
+            isinstance(value, (int, float))
             and self.update_by_timeout
             and round(value, 3) != self.last_value
         ):
@@ -733,6 +734,9 @@ class FrostedGlass(FloatLayout):
         ):
             self.update_effect()
             self.last_value_list = round(value[0], 2), round(value[1], 2)
+
+        elif self.update_by_timeout:
+            self.update_effect()
 
     @property
     def popup_closed(self):
