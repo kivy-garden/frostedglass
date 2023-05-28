@@ -1,6 +1,15 @@
 # Changelog
 <br>
 
+# 0.5.0 → 2023-05-28
+
+Fixed
+----------
+
+- Fix effect update for animated backgrounds (gif, videos, etc);
+- Require `kivy==2.2.0` (which includes kivy `Smoothline` `rounded_rectangle` fix);
+- Ask update for horizontal blur fbo.
+
 # 0.4.0 → 2023-04-30
 
 Fixed
